@@ -18,18 +18,12 @@ function FloorPlanElement({ element, scale, wallHeight, showLabels }) {
   const { type, bounds } = element
   
   // Calculate position and size
-  const width = (bounds.x2 - bounds.x1) * scale
-  const depth = (bounds.y2 - bounds.y1) * scale
+  let width = (bounds.x2 - bounds.x1) * scale
+  let depth = (bounds.y2 - bounds.y1) * scale
   const centerX = bounds.center_x * scale
   const centerZ = bounds.center_y * scale
   
   const elemType = type.toLowerCase()
-  
-  // Filter out non-solid elements (like dimensions, rooms, text)
-  const allowedSolidTypes = ['wall', 'window', 'door', 'column']
-  if (!allowedSolidTypes.includes(elemType)) {
-    return null
-  }
   
   // Custom heights
   let height = wallHeight
@@ -38,6 +32,17 @@ function FloorPlanElement({ element, scale, wallHeight, showLabels }) {
   if (elemType === 'column') {
     height = wallHeight * 1.05
     yPos = height / 2
+  }
+
+  // GAP FIX: Extend the length of walls, doors, and windows slightly so they 
+  // intersect each other at corners, removing visible seams/gaps.
+  if (['wall', 'window', 'door'].includes(elemType)) {
+    const extension = 0.6 // Extends the major axis by 0.6 meters total (0.3m per side)
+    if (width > depth) {
+      width += extension
+    } else {
+      depth += extension
+    }
   }
 
   // Material setup based on type
@@ -242,8 +247,31 @@ export default function ThreeScene({ detectionData, wallHeight = 3, showLabels =
     return 20 / maxDim // Normalize to ~20 meters max size
   }, [detectionData])
   
-  const floorWidth = (detectionData.image_dimensions?.width || 1000) * scale
-  const floorDepth = (detectionData.image_dimensions?.height || 1000) * scale
+  const imgWidth = detectionData.image_dimensions?.width || 1000
+  const imgHeight = detectionData.image_dimensions?.height || 1000
+  const floorWidth = imgWidth * scale
+  const floorDepth = imgHeight * scale
+  
+  // Filter out anomalies
+  const filteredElements = useMemo(() => {
+    return (detectionData.elements || []).filter(element => {
+      const elemType = element.type.toLowerCase()
+      const allowedSolidTypes = ['wall', 'window', 'door', 'column']
+      if (!allowedSolidTypes.includes(elemType)) return false
+  
+      // FILTER CEILING ARTIFACTS:
+      // If a wall is massive in both width and height (e.g. covers >30% of the entire house footprint),
+      // it is a misclassified room boundary and acts like a ceiling. Remove it.
+      if (elemType === 'wall') {
+        const boxWidth = element.bounds.x2 - element.bounds.x1
+        const boxHeight = element.bounds.y2 - element.bounds.y1
+        if (boxWidth > imgWidth * 0.3 && boxHeight > imgHeight * 0.3) {
+          return false
+        }
+      }
+      return true
+    })
+  }, [detectionData, imgWidth, imgHeight])
   
   return (
     <div className="w-full h-full bg-black relative">
@@ -296,7 +324,7 @@ export default function ThreeScene({ detectionData, wallHeight = 3, showLabels =
         <Floor width={floorWidth} depth={floorDepth} />
         
         {/* Render architectural elements */}
-        {detectionData.elements?.map((element, index) => (
+        {filteredElements.map((element, index) => (
           <FloorPlanElement
             key={index}
             element={element}
