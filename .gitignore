@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# Build outputs
+dist/
+build/
+backend/weights/*.pt
+!backend/weights/.gitkeep
+
+# macOS
+.DS_Store
+
+# Logs
+backend.log
+*.log
