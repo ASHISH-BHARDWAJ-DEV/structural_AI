@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,9 +16,9 @@ html {
 
 body {
   font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+  background: #80C8C6;
   min-height: 100vh;
-  color: #f1f5f9;
+  color: #1e293b;
 }
 
 /* Custom scrollbar */
@@ -40,6 +42,10 @@ body {
 
 /* Glassmorphism utility */
 @layer components {
+  .voxel-panel {
+    @apply bg-white border-4 border-black p-6 rounded-none shadow-[4px_4px_0px_0px_#000000];
+  }
+  
   .glass {
     @apply bg-white/5 backdrop-blur-xl border border-white/10;
   }
@@ -69,5 +75,9 @@ body {
   .animate-gradient {
     background-size: 300% 300%;
     animation: gradient 8s ease infinite;
+  }
+  
+  .pixel-text {
+    font-family: 'VT323', monospace;
   }
 }

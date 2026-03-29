@@ -9,7 +9,7 @@ export default function HomePage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="pt-16"
+      className="pt-16 bg-[#80C8C6] min-h-screen"
     >
       <HeroSection />
       <FeaturesSection />

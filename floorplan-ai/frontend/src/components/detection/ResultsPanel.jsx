@@ -27,37 +27,33 @@ export default function ResultsPanel() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card p-6"
+      className="voxel-panel"
     >
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-          <ImageIcon className="w-5 h-5 text-green-400" />
+      <div className="flex items-center justify-between mb-4 pb-2 border-b-4 border-black">
+        <h2 className="text-2xl font-black text-black flex items-center gap-2 pixel-text uppercase">
+          <ImageIcon className="w-6 h-6 stroke-[3]" />
           Detection Results
         </h2>
         
-        <div className="flex gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+        <div className="flex gap-3">
+          <button
             onClick={handleDownloadImage}
-            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-medium flex items-center gap-1.5 transition-colors"
+            className="px-4 py-2 bg-yellow-400 border-4 border-black text-black font-black uppercase pixel-text text-lg flex items-center gap-2 tracking-wider shadow-[2px_2px_0_0_#000] hover:-translate-y-1 hover:shadow-[4px_4px_0_0_#000] active:translate-y-1 active:shadow-[0px_0px_0_0_#000]"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-5 h-5 stroke-[3]" />
             Image
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          </button>
+          <button
             onClick={handleDownloadJSON}
-            className="px-3 py-1.5 rounded-lg bg-primary-500/20 hover:bg-primary-500/30 text-primary-400 text-sm font-medium flex items-center gap-1.5 transition-colors"
+            className="px-4 py-2 bg-yellow-400 border-4 border-black text-black font-black uppercase pixel-text text-lg flex items-center gap-2 tracking-wider shadow-[2px_2px_0_0_#000] hover:-translate-y-1 hover:shadow-[4px_4px_0_0_#000] active:translate-y-1 active:shadow-[0px_0px_0_0_#000]"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-5 h-5 stroke-[3]" />
             JSON
-          </motion.button>
+          </button>
         </div>
       </div>
       
-      <div className="relative rounded-xl overflow-hidden bg-black/20">
+      <div className="relative border-4 border-black bg-white shadow-inner">
         <img
           src={`data:image/png;base64,${detectionResult.annotated_image_base64}`}
           alt="Detected floor plan"
