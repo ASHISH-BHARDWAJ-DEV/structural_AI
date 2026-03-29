@@ -1,27 +1,37 @@
-import { Routes, Route } from 'react-router-dom'
-import { AnimatePresence } from 'framer-motion'
-import Navbar from './components/layout/Navbar'
-import Footer from './components/layout/Footer'
-import HomePage from './pages/HomePage'
-import DetectionPage from './pages/DetectionPage'
-import VisualizationPage from './pages/VisualizationPage'
+import React from 'react';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
+import HomePage from './pages/HomePage';
+import DetectionPage from './pages/DetectionPage';
+import VisualizationPage from './pages/VisualizationPage';
+import Navbar from './components/layout/Navbar';
+
+// Important: MainAppLayout matches the exact structure requested
+const MainAppLayout = () => {
+  return (
+    <div className="min-h-screen bg-[#80C8C6] flex flex-col font-sans">
+      <Navbar /> 
+      <main className="flex-grow relative">
+        <Outlet /> 
+      </main>
+    </div>
+  );
+};
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-1">
-        <AnimatePresence mode="wait">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/detect" element={<DetectionPage />} />
-            <Route path="/visualize" element={<VisualizationPage />} />
-          </Routes>
-        </AnimatePresence>
-      </main>
-      <Footer />
-    </div>
-  )
+    <Routes>
+      {/* Landing Page Route */}
+      <Route path="/" element={<LandingPage />} />
+      
+      {/* Nested App Routes with specific layout */}
+      <Route path="/app" element={<MainAppLayout />}>
+        <Route index element={<HomePage />} />
+        <Route path="detection" element={<DetectionPage />} />
+        <Route path="visualization" element={<VisualizationPage />} />
+      </Route>
+    </Routes>
+  );
 }
 
-export default App
+export default App;

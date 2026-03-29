@@ -54,9 +54,8 @@ export default function DetectionPage() {
   
   const handleProceedTo3D = () => {
     if (detectionResult?.detection_json) {
-      // Store detection data for visualization page
       localStorage.setItem('detectionData', JSON.stringify(detectionResult.detection_json))
-      navigate('/visualize')
+      navigate('/app/visualization')
     }
   }
   
@@ -81,10 +80,10 @@ export default function DetectionPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl font-bold text-white mb-4">
+          <h1 className="text-5xl font-bold text-black mb-4 pixel-text uppercase tracking-widest drop-shadow-md">
             Floor Plan Detection
           </h1>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+          <p className="text-black/80 font-bold text-lg max-w-2xl mx-auto pixel-text tracking-widest uppercase">
             Upload your floor plan and let AI detect walls, doors, windows, and more
           </p>
         </motion.div>
@@ -102,25 +101,21 @@ export default function DetectionPage() {
               transition={{ delay: 0.2 }}
               className="flex gap-4"
             >
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 onClick={handleAnalyze}
                 disabled={!uploadedFile || isDetecting}
-                className="flex-1 btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-yellow-400 text-black border-4 border-black px-6 py-3 font-black uppercase pixel-text tracking-widest transition-transform hover:-translate-y-1 shadow-[4px_4px_0_0_#000] active:translate-y-1 active:shadow-[0px_0px_0_0_#000] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xl"
               >
                 Analyze Floor Plan
-              </motion.button>
+              </button>
               
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 onClick={handleReset}
-                className="btn-secondary flex items-center gap-2"
+                className="bg-white text-black border-4 border-black px-6 py-3 font-black uppercase pixel-text tracking-widest transition-transform hover:-translate-y-1 shadow-[4px_4px_0_0_#000] active:translate-y-1 active:shadow-[0px_0px_0_0_#000] flex items-center gap-2 text-xl"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-5 h-5" />
                 Reset
-              </motion.button>
+              </button>
             </motion.div>
             
             {/* Image Preview */}
@@ -135,32 +130,33 @@ export default function DetectionPage() {
                 <DetectionCards />
                 
                 {/* Proceed to 3D Button */}
-                <motion.button
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleProceedTo3D}
-                  className="w-full btn-primary flex items-center justify-center gap-2 text-lg py-4"
                 >
-                  Proceed to 3D Visualization
-                  <ArrowRight className="w-5 h-5" />
-                </motion.button>
+                  <button
+                    onClick={handleProceedTo3D}
+                    className="w-full bg-yellow-400 text-black border-4 border-black px-6 py-4 font-black uppercase pixel-text tracking-[0.2em] transition-transform hover:-translate-y-1 shadow-[6px_6px_0_0_#000] active:translate-y-1 active:shadow-[0px_0px_0_0_#000] flex items-center justify-center gap-2 text-2xl"
+                  >
+                    Proceed to 3D Visualization
+                    <ArrowRight className="w-6 h-6 stroke-[3]" />
+                  </button>
+                </motion.div>
               </>
             ) : (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="glass-card p-12 text-center"
+                className="voxel-panel p-12 text-center"
               >
-                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary-500/20 to-accent-500/20 flex items-center justify-center">
-                  <svg className="w-12 h-12 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <div className="w-24 h-24 mx-auto mb-6 bg-yellow-400 border-4 border-black flex items-center justify-center shadow-[4px_4px_0_0_#000]">
+                  <svg className="w-12 h-12 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="square" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">No Results Yet</h3>
-                <p className="text-slate-400">
-                  Upload a floor plan and click "Analyze" to see detection results
+                <h3 className="text-2xl font-black text-black mb-2 pixel-text uppercase">No Results Yet</h3>
+                <p className="text-black font-bold pixel-text text-lg">
+                  Upload a floor plan and click "Analyze"
                 </p>
               </motion.div>
             )}
@@ -184,10 +180,10 @@ export default function DetectionPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-8 glass-card p-6 border-red-500/50"
+            className="mt-8 voxel-panel p-6 border-red-500 bg-red-50"
           >
-            <h3 className="text-lg font-semibold text-red-400 mb-2">Detection Error</h3>
-            <p className="text-slate-400">{detectionError}</p>
+            <h3 className="text-xl font-bold text-red-600 mb-2 pixel-text uppercase">Detection Error</h3>
+            <p className="text-red-800 font-bold pixel-text text-lg">{detectionError}</p>
           </motion.div>
         )}
       </div>

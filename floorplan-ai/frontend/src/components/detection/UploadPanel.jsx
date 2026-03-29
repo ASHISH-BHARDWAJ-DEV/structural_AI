@@ -10,7 +10,7 @@ export default function UploadPanel() {
   
   const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
     if (rejectedFiles.length > 0) {
-      toast.error('Invalid file type. Please upload PNG, JPG, or JPEG images.')
+      toast.error('Invalid file type.')
       return
     }
     
@@ -18,7 +18,7 @@ export default function UploadPanel() {
       const file = acceptedFiles[0]
       const preview = URL.createObjectURL(file)
       setUploadedFile(file, preview)
-      toast.success('Image uploaded successfully!')
+      toast.success('Image uploaded!')
     }
   }, [setUploadedFile])
   
@@ -29,38 +29,38 @@ export default function UploadPanel() {
       'image/jpeg': ['.jpg', '.jpeg'],
     },
     maxFiles: 1,
-    maxSize: 10 * 1024 * 1024, // 10MB
+    maxSize: 10 * 1024 * 1024,
   })
   
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card p-6"
+      className="voxel-panel"
     >
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-          <Upload className="w-5 h-5 text-primary-400" />
+      <div className="flex items-center justify-between mb-4 pb-2 border-b-4 border-black">
+        <h2 className="text-2xl font-black text-black flex items-center gap-3 pixel-text uppercase tracking-widest">
+          <Upload className="w-6 h-6 stroke-[3]" />
           Upload Floor Plan
         </h2>
         {uploadedFile && (
           <button
             onClick={clearUpload}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors text-slate-400 hover:text-white"
+            className="p-1 border-2 border-black bg-white hover:bg-black hover:text-white transition-colors text-black shadow-[2px_2px_0_0_#000]"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6 stroke-[3]" />
           </button>
         )}
       </div>
       
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 ${
+        className={`border-4 border-black p-8 text-center cursor-pointer transition-all duration-200 bg-white ${
           isDragActive
-            ? 'border-primary-500 bg-primary-500/10'
+            ? 'bg-yellow-100 -translate-y-1 shadow-[4px_4px_0_0_#000]'
             : uploadedFile
-            ? 'border-green-500/50 bg-green-500/5'
-            : 'border-white/20 hover:border-white/40 hover:bg-white/5'
+            ? 'bg-teal-50'
+            : 'hover:bg-yellow-50 hover:-translate-y-1 hover:shadow-[4px_4px_0_0_#000]'
         }`}
       >
         <input {...getInputProps()} />
@@ -68,32 +68,32 @@ export default function UploadPanel() {
         <div className="flex flex-col items-center">
           {uploadedFile ? (
             <>
-              <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
-                <Image className="w-8 h-8 text-green-400" />
+              <div className="w-16 h-16 bg-teal-200 border-4 border-black flex items-center justify-center mb-4 shadow-[4px_4px_0_0_#000]">
+                <Image className="w-8 h-8 text-black" />
               </div>
-              <p className="text-white font-medium mb-1">{uploadedFile.name}</p>
-              <p className="text-slate-400 text-sm">
+              <p className="text-black font-black mb-1 pixel-text text-xl">{uploadedFile.name}</p>
+              <p className="text-black/60 font-bold pixel-text text-lg">
                 {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
               </p>
-              <p className="text-primary-400 text-sm mt-2">
-                Click or drag to replace
+              <p className="text-black font-bold uppercase pixel-text text-md mt-4 p-2 bg-yellow-400 border-2 border-black">
+                Click to replace
               </p>
             </>
           ) : (
             <>
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 transition-colors ${
-                isDragActive ? 'bg-primary-500/20' : 'bg-white/10'
+              <div className={`w-16 h-16 border-4 border-black flex items-center justify-center mb-4 transition-colors shadow-[4px_4px_0_0_#000] ${
+                isDragActive ? 'bg-yellow-400' : 'bg-white'
               }`}>
-                <Upload className={`w-8 h-8 ${isDragActive ? 'text-primary-400' : 'text-slate-400'}`} />
+                <Upload className="w-8 h-8 text-black stroke-[3]" />
               </div>
-              <p className="text-white font-medium mb-1">
-                {isDragActive ? 'Drop your image here' : 'Drag & drop your floor plan'}
+              <p className="text-black font-black mb-2 pixel-text text-2xl uppercase">
+                {isDragActive ? 'DROP!' : 'DRAG & DROP'}
               </p>
-              <p className="text-slate-400 text-sm mb-4">
+              <p className="text-black/60 font-bold pixel-text text-lg mb-4 uppercase">
                 or click to browse
               </p>
-              <p className="text-slate-500 text-xs">
-                Supports PNG, JPG, JPEG • Max 10MB
+              <p className="text-black bg-black/10 px-3 py-1 font-bold pixel-text text-sm uppercase">
+                PNG, JPG • Max 10MB
               </p>
             </>
           )}

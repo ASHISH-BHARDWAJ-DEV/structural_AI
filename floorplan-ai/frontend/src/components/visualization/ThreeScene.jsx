@@ -246,7 +246,17 @@ export default function ThreeScene({ detectionData, wallHeight = 3, showLabels =
   const floorDepth = (detectionData.image_dimensions?.height || 1000) * scale
   
   return (
-    <div className="w-full h-full rounded-xl overflow-hidden bg-gradient-to-b from-slate-900 to-slate-800 shadow-inner">
+    <div className="w-full h-full bg-black relative">
+      {/* HUD - Voxel Badge */}
+      <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 pointer-events-none">
+        <div className="bg-white border-2 border-black text-black px-4 py-1 uppercase text-sm font-black pixel-text shadow-[2px_2px_0_0_#000]">
+          3D_RENDERER_v1.0
+        </div>
+        <div className="bg-yellow-400 border-2 border-black text-black px-4 py-1 uppercase text-xs font-black pixel-text shadow-[2px_2px_0_0_#000]">
+          FPS: 60
+        </div>
+      </div>
+
       <Canvas shadows>
         <PerspectiveCamera makeDefault position={[floorWidth * 1.2, wallHeight * 4, floorDepth * 1.5]} fov={50} />
         

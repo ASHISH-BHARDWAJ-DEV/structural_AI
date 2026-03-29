@@ -48,29 +48,31 @@ export default function VisualizationPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="pt-20 pb-12 min-h-screen"
+      className="pt-24 pb-12 min-h-screen bg-[#80C8C6]"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate('/detect')}
-              className="p-2 rounded-lg glass hover:bg-white/10 transition-colors"
+        {/* Header - Voxel Style */}
+        <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => navigate('/app/detection')}
+              className="p-3 bg-white border-4 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
             >
-              <ArrowLeft className="w-5 h-5" />
-            </motion.button>
+              <ArrowLeft className="w-6 h-6 text-black stroke-[3]" />
+            </button>
             <div>
-              <h1 className="text-3xl font-bold text-white">3D Visualization</h1>
-              <p className="text-slate-400">Interactive 3D model from detection data</p>
+              <h1 className="text-5xl font-black text-black mb-2 pixel-text uppercase tracking-widest drop-shadow-md">
+                3D Visualization
+              </h1>
+              <p className="text-black font-bold pixel-text uppercase tracking-wider opacity-80">
+                Interactive 3D model from detection data
+              </p>
             </div>
           </div>
           
-          <div className="flex gap-2">
-            <label className="btn-secondary flex items-center gap-2 cursor-pointer">
-              <Upload className="w-4 h-4" />
+          <div className="flex gap-4">
+            <label className="bg-yellow-400 border-4 border-black text-black px-6 py-3 font-black uppercase pixel-text tracking-widest cursor-pointer shadow-[4px_4px_0_0_#000] hover:-translate-y-1 hover:shadow-[6px_6px_0_0_#000] active:translate-y-1 active:shadow-none transition-all flex items-center gap-3">
+              <Upload className="w-5 h-5 stroke-[3]" />
               Upload JSON
               <input
                 type="file"
@@ -82,51 +84,49 @@ export default function VisualizationPage() {
           </div>
         </div>
         
-        <div className="grid lg:grid-cols-4 gap-6">
-          {/* Controls Panel */}
-          <div className="space-y-4">
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Controls Panel - Voxel Style */}
+          <div className="space-y-6">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="glass-card p-6"
+              className="voxel-panel bg-white p-8"
             >
-              <h2 className="text-lg font-semibold text-white mb-4">Controls</h2>
+              <h2 className="text-2xl font-black text-black mb-6 pixel-text uppercase tracking-widest border-b-4 border-black pb-2">
+                Controls
+              </h2>
               
-              <div className="space-y-4">
-                {/* Wall Height */}
+              <div className="space-y-8">
+                {/* Wall Height Control */}
                 <div>
-                  <label className="text-sm text-slate-400 mb-2 block">
+                  <label className="text-sm font-black text-black pixel-text uppercase mb-3 block">
                     Wall Height: {wallHeight}m
                   </label>
-                  <input
-                    type="range"
-                    min="1"
-                    max="10"
-                    step="0.5"
-                    value={wallHeight}
-                    onChange={(e) => setWallHeight(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer
-                               [&::-webkit-slider-thumb]:appearance-none
-                               [&::-webkit-slider-thumb]:w-4
-                               [&::-webkit-slider-thumb]:h-4
-                               [&::-webkit-slider-thumb]:rounded-full
-                               [&::-webkit-slider-thumb]:bg-primary-500
-                               [&::-webkit-slider-thumb]:cursor-pointer"
-                  />
+                  <div className="relative pt-1">
+                    <input
+                      type="range"
+                      min="1"
+                      max="10"
+                      step="0.5"
+                      value={wallHeight}
+                      onChange={(e) => setWallHeight(parseFloat(e.target.value))}
+                      className="w-full h-4 bg-black rounded-none appearance-none cursor-pointer accent-yellow-400"
+                    />
+                  </div>
                 </div>
                 
-                {/* Show Labels Toggle */}
+                {/* Show Labels Toggle - Voxel Style */}
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-400">Show Labels</span>
+                  <span className="text-sm font-black text-black pixel-text uppercase">Show Labels</span>
                   <button
                     onClick={() => setShowLabels(!showLabels)}
-                    className={`w-12 h-6 rounded-full transition-colors ${
-                      showLabels ? 'bg-primary-500' : 'bg-white/20'
+                    className={`w-16 h-8 border-4 border-black transition-colors shadow-[2px_2px_0_0_#000] ${
+                      showLabels ? 'bg-yellow-400' : 'bg-gray-300'
                     }`}
                   >
                     <div
-                      className={`w-5 h-5 rounded-full bg-white transform transition-transform ${
-                        showLabels ? 'translate-x-6' : 'translate-x-0.5'
+                      className={`w-4 h-4 bg-black transform transition-transform mx-1 ${
+                        showLabels ? 'translate-x-6' : 'translate-x-0'
                       }`}
                     />
                   </button>
@@ -134,64 +134,71 @@ export default function VisualizationPage() {
                 
                 <button
                   onClick={handleReset}
-                  className="w-full btn-secondary flex items-center justify-center gap-2"
+                  className="w-full bg-white border-4 border-black text-black font-black uppercase px-4 py-3 pixel-text tracking-widest hover:bg-gray-100 hover:-translate-y-1 shadow-[4px_4px_0_0_#000] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-5 h-5 stroke-[3]" />
                   Reset View
                 </button>
               </div>
             </motion.div>
             
-            {/* Stats */}
+            {/* Stats - Voxel Style */}
             {detectionData && (
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
-                className="glass-card p-6"
+                className="voxel-panel bg-white p-8"
               >
-                <h2 className="text-lg font-semibold text-white mb-4">Stats</h2>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Elements</span>
-                    <span className="text-white font-medium">
+                <h2 className="text-2xl font-black text-black mb-6 pixel-text uppercase tracking-widest border-b-4 border-black pb-2">
+                  Stats
+                </h2>
+                <div className="space-y-4">
+                  <div className="flex justify-between border-b-2 border-dashed border-gray-400 pb-2">
+                    <span className="text-black font-bold pixel-text uppercase">Elements</span>
+                    <span className="text-black font-black pixel-text">
                       {detectionData.elements?.length || 0}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Dimensions</span>
-                    <span className="text-white font-medium">
-                      {detectionData.image_dimensions?.width} × {detectionData.image_dimensions?.height}
+                  <div className="flex justify-between border-b-2 border-dashed border-gray-400 pb-2">
+                    <span className="text-black font-bold pixel-text uppercase">Resol.</span>
+                    <span className="text-black font-black pixel-text">
+                      {detectionData.image_dimensions?.width}x{detectionData.image_dimensions?.height}
                     </span>
                   </div>
                 </div>
               </motion.div>
             )}
             
-            {/* Instructions */}
+            {/* Instructions - Voxel Style */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="glass-card p-6"
+              className="voxel-panel bg-black text-white p-8 shadow-[6px_6px_0_0_#fbbf24]"
             >
-              <h2 className="text-lg font-semibold text-white mb-4">Navigation</h2>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li>• Left-click + drag to rotate</li>
-                <li>• Right-click + drag to pan</li>
-                <li>• Scroll to zoom</li>
-                <li>• Double-click to reset</li>
+              <h2 className="text-2xl font-black text-yellow-400 mb-6 pixel-text uppercase tracking-widest border-b-4 border-yellow-400 pb-2">
+                HUD Guide
+              </h2>
+              <ul className="space-y-3 text-sm font-bold pixel-text uppercase tracking-wider">
+                <li className="flex items-center gap-2"><div className="w-2 h-2 bg-yellow-400" /> Rotate: L-Click</li>
+                <li className="flex items-center gap-2"><div className="w-2 h-2 bg-yellow-400" /> Pan: R-Click</li>
+                <li className="flex items-center gap-2"><div className="w-2 h-2 bg-yellow-400" /> Zoom: Scroll</li>
+                <li className="flex items-center gap-2"><div className="w-2 h-2 bg-yellow-400" /> Reset: 2x Click</li>
               </ul>
             </motion.div>
           </div>
           
-          {/* 3D Scene */}
+          {/* Main Monitor Viewport */}
           <div className="lg:col-span-3">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="glass-card p-4 h-[600px]"
+              className="w-full h-[75vh] bg-black border-[12px] border-black shadow-[12px_12px_0_0_rgba(0,0,0,0.4)] relative overflow-hidden"
             >
+              {/* Retro Monitor Glare Effect */}
+              <div className="absolute inset-0 pointer-events-none z-10 opacity-10 bg-gradient-to-tr from-transparent via-white to-transparent" />
+              
               {detectionData ? (
                 <ThreeScene 
                   detectionData={detectionData}
@@ -199,20 +206,19 @@ export default function VisualizationPage() {
                   showLabels={showLabels}
                 />
               ) : (
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center">
-                      <Upload className="w-12 h-12 text-slate-500" />
+                <div className="h-full flex items-center justify-center bg-gray-900">
+                  <div className="text-center p-12 border-4 border-dashed border-gray-700">
+                    <div className="w-24 h-24 mx-auto mb-8 bg-black border-4 border-gray-700 flex items-center justify-center">
+                      <Upload className="w-12 h-12 text-gray-700" />
                     </div>
-                    <h3 className="text-xl font-semibold text-white mb-2">No Data Loaded</h3>
-                    <p className="text-slate-400 mb-4">
-                      Upload a detection JSON file or run detection first
-                    </p>
+                    <h3 className="text-3xl font-black text-gray-700 mb-4 pixel-text uppercase tracking-widest">
+                      SYSTEM: NO_DATA
+                    </h3>
                     <button
-                      onClick={() => navigate('/detect')}
-                      className="btn-primary"
+                      onClick={() => navigate('/app/detection')}
+                      className="bg-gray-800 border-4 border-gray-700 text-gray-600 font-black uppercase px-8 py-4 text-xl pixel-text tracking-widest cursor-not-allowed"
                     >
-                      Go to Detection
+                      Initialize Link
                     </button>
                   </div>
                 </div>
