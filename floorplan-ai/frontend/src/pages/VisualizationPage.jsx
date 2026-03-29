@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Upload, RotateCcw, Download, Maximize2 } from 'lucide-react'
+import { ArrowLeft, Upload, RotateCcw, ArrowRight, FlaskConical } from 'lucide-react'
 import ThreeScene from '../components/visualization/ThreeScene'
 
 export default function VisualizationPage() {
@@ -109,7 +109,11 @@ export default function VisualizationPage() {
                       max="10"
                       step="0.5"
                       value={wallHeight}
-                      onChange={(e) => setWallHeight(parseFloat(e.target.value))}
+                      onChange={(e) => {
+                        const h = parseFloat(e.target.value)
+                        setWallHeight(h)
+                        localStorage.setItem('wallHeight', h)
+                      }}
                       className="w-full h-4 bg-black rounded-none appearance-none cursor-pointer accent-yellow-400"
                     />
                   </div>
@@ -224,6 +228,25 @@ export default function VisualizationPage() {
                 </div>
               )}
             </motion.div>
+
+            {/* Proceed to Materials Button */}
+            {detectionData && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="mt-6"
+              >
+                <button
+                  onClick={() => navigate('/app/materials')}
+                  className="w-full bg-black text-yellow-400 border-4 border-black px-6 py-4 font-black uppercase pixel-text tracking-[0.2em] transition-transform hover:-translate-y-1 shadow-[6px_6px_0_0_#fbbf24] active:translate-y-1 active:shadow-[0px_0px_0_0_#000] flex items-center justify-center gap-3 text-2xl"
+                >
+                  <FlaskConical className="w-6 h-6 stroke-[3]" />
+                  Material Analysis &amp; Explainability
+                  <ArrowRight className="w-6 h-6 stroke-[3]" />
+                </button>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>

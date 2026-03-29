@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Scan, Box, Menu, X } from 'lucide-react';
+import { Home, Scan, Box, FlaskConical, Menu, X } from 'lucide-react';
 
 const navLinks = [
-  { path: '/app', label: 'DASHBOARD', icon: Home },
-  { path: '/app/detection', label: 'DETECTION', icon: Scan },
-  { path: '/app/visualization', label: '3D VIEW', icon: Box },
+  { path: '/app',              label: 'DASHBOARD',  icon: Home        },
+  { path: '/app/detection',    label: 'DETECTION',  icon: Scan        },
+  { path: '/app/visualization',label: '3D VIEW',    icon: Box         },
+  { path: '/app/materials',    label: 'MATERIALS',  icon: FlaskConical },
 ];
 
 export default function Navbar() {
@@ -17,8 +18,8 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#80C8C6] border-b-4 border-black font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          
-          {/* Logo - Voxel Style */}
+
+          {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group pointer-events-auto">
             <div className="w-12 h-12 bg-yellow-400 border-4 border-black flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:shadow-none transition-all">
               <Box className="w-7 h-7 text-black stroke-[3]" />
@@ -27,32 +28,32 @@ export default function Navbar() {
               FloorPlan AI
             </span>
           </Link>
-          
+
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-2">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
-              
               return (
                 <Link
                   key={link.path}
                   to={link.path}
                   className={`
-                    px-6 py-2 text-lg font-black pixel-text tracking-widest transition-all duration-200 uppercase
-                    ${isActive 
-                      ? 'bg-yellow-400 border-4 border-black text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' 
+                    flex items-center gap-2 px-4 py-2 text-base font-black pixel-text tracking-widest transition-all duration-200 uppercase
+                    ${isActive
+                      ? 'bg-yellow-400 border-4 border-black text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
                       : 'text-black hover:bg-white/40 border-4 border-transparent hover:border-black'
                     }
                   `}
                 >
+                  <link.icon className="w-4 h-4 stroke-[3]" />
                   {link.label}
                 </Link>
               );
             })}
           </div>
-          
+
           {/* Mobile menu button */}
-          <button 
+          <button
             className="md:hidden p-2 border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
@@ -60,7 +61,7 @@ export default function Navbar() {
           </button>
         </div>
       </div>
-      
+
       {/* Mobile Navigation */}
       <AnimatePresence>
         {mobileMenuOpen && (
@@ -72,7 +73,6 @@ export default function Navbar() {
           >
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
-              
               return (
                 <Link
                   key={link.path}
@@ -80,8 +80,8 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`
                     flex items-center gap-4 px-6 py-4 text-xl font-black pixel-text tracking-widest uppercase border-4
-                    ${isActive 
-                      ? 'bg-yellow-400 border-black text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' 
+                    ${isActive
+                      ? 'bg-yellow-400 border-black text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'
                       : 'bg-white border-transparent text-black'
                     }
                   `}
