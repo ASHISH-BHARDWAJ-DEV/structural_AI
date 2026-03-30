@@ -6,11 +6,11 @@ import {
   TrendingUp, TrendingDown, DollarSign, Layers, Building2,
   ChevronUp, ChevronDown, Minus, RefreshCw, IndianRupee, SlidersHorizontal,
   ShieldCheck, Database,
-  Wifi, WifiOff, ExternalLink, RefreshCcw, CheckCircle2
+  Wifi, WifiOff, ExternalLink, RefreshCcw, CheckCircle2, Copy, FileJson
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { generateReportHash } from '../services/reportHasher'
-import { connectFreighter, anchorHashOnChain } from '../services/stellar'
+import { connectFreighter, anchorHashOnChain, DEMO_MODE } from '../services/stellar'
 import { fetchLivePrices, refreshLivePrices } from '../services/api'
 import { FLOOR_CONFIGS, getFloorConfig } from '../data/multiStorey'
 
@@ -641,6 +641,7 @@ export default function CostBreakdownPage() {
   const [numFloors,     setNumFloors]     = useState(
     () => parseInt(localStorage.getItem('numFloors') || '1')
   )
+  const [projectId]     = useState(() => `proj_${Date.now()}`)
 
   const floorConfig = getFloorConfig(numFloors)
 
@@ -706,6 +707,30 @@ export default function CostBreakdownPage() {
     setIsPdfExporting(false)
   }
 
+  const handleDownloadJSON = () => {
+    if (!analyses) return
+    const reportData = {
+      projectId: projectId,
+      metadata: {
+        timestamp: Date.now(),
+        wallHeight: wallHeight,
+        totalElements: lineItems.length,
+        grandMid: summary.grandMid
+      },
+      lineItems: lineItems
+    }
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `structural_report_${reportData.projectId}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    toast.success('JSON Report downloaded!')
+  }
+
   const handleAnchorToBlockchain = async () => {
     if (!analyses) return
     
@@ -715,7 +740,7 @@ export default function CostBreakdownPage() {
     try {
       // 1. Generate Hash from current state
       const reportData = {
-        projectId: `proj_${Date.now()}`, // In a real app, this would be fixed per project
+        projectId: projectId,
         metadata: {
           timestamp: Date.now(),
           wallHeight: wallHeight,
@@ -817,6 +842,14 @@ export default function CostBreakdownPage() {
                   {isPdfExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                   Export PDF
                 </button>
+
+                <button
+                  onClick={handleDownloadJSON}
+                  className="flex items-center gap-2 px-6 py-3 bg-white text-black border-4 border-black shadow-[4px_4px_0_0_#000] hover:shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all font-black pixel-text uppercase text-sm"
+                >
+                  <FileJson className="w-4 h-4" />
+                  Download JSON
+                </button>
               </div>
             )}
           </div>
@@ -853,9 +886,24 @@ export default function CostBreakdownPage() {
                 <div className="flex items-center gap-2 text-green-800 font-black pixel-text uppercase text-sm">
                   <ShieldCheck className="w-5 h-5" />
                   Proof of Existence Anchored!
+                  {DEMO_MODE && (
+                    <span className="ml-2 px-2 py-0.5 bg-yellow-400 text-black border-2 border-black text-[10px] leading-none">
+                      DEMO MODE
+                    </span>
+                  )}
                 </div>
-                <div className="text-xs font-mono break-all text-green-700 bg-white/50 p-2 border-2 border-green-200">
-                  Transaction Hash: {txHash}
+                <div className="flex items-center gap-2 text-xs font-mono break-all text-green-700 bg-white/50 p-2 border-2 border-green-200">
+                  <span className="flex-grow">Transaction Hash: {txHash}</span>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(txHash);
+                      toast.success('Hash copied to clipboard!');
+                    }}
+                    className="p-1 hover:bg-green-200 rounded transition-colors shrink-0"
+                    title="Copy to clipboard"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
                 </div>
               </motion.div>
             )}
