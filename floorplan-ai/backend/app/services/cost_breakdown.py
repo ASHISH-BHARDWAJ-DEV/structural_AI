@@ -27,20 +27,6 @@ from app.models.schemas import (
 
 logger = logging.getLogger(__name__)
 
-# ─── Material Price Database (₹ per m²) ──────────────────────────────────────
-
-MATERIAL_PRICES: Dict[str, Tuple[float, float]] = {
-    "AAC Blocks":             (800,   1200),
-    "Red Brick":              (1000,  1500),
-    "RCC":                    (2000,  3000),
-    "Steel Frame":            (3500,  5500),
-    "Hollow Concrete Block":  (700,   1000),
-    "Fly Ash Brick":          (850,   1200),
-    "Precast Concrete Panel": (1800,  2800),
-    # Fallback for unknown materials
-    "default":                (1000,  2000),
-}
-
 # ─── Category Labels ──────────────────────────────────────────────────────────
 
 ROLE_CATEGORY_LABELS: Dict[str, str] = {
@@ -60,14 +46,30 @@ MINIMUM_AREA_BY_ROLE: Dict[str, float] = {
 
 
 def _get_price(material_name: str) -> Tuple[float, float]:
-    """Look up low/high price per m² for a material."""
-    # Try exact match first, then partial match
-    if material_name in MATERIAL_PRICES:
-        return MATERIAL_PRICES[material_name]
-    for key in MATERIAL_PRICES:
-        if key.lower() in material_name.lower() or material_name.lower() in key.lower():
-            return MATERIAL_PRICES[key]
-    return MATERIAL_PRICES["default"]
+    """
+    Look up live scraped or cached price (₹/m²) for a material.
+    Falls back to hardcoded baselines transparently via price_cache.
+    """
+    try:
+        from app.services.price_scraper import price_cache
+        return price_cache.get_price_range(material_name)
+    except Exception as exc:
+        logger.warning(f"price_cache unavailable ({exc}), using hardcoded fallback")
+        # Hard fallback — only used if import itself fails
+        _FALLBACK: Dict[str, Tuple[float, float]] = {
+            "AAC Blocks":             (800,   1200),
+            "Red Brick":              (1000,  1500),
+            "RCC":                    (2000,  3000),
+            "Steel Frame":            (3500,  5500),
+            "Hollow Concrete Block":  (700,   1000),
+            "Fly Ash Brick":          (850,   1200),
+            "Precast Concrete Panel": (1800,  2800),
+        }
+        name_lower = material_name.lower()
+        for k, v in _FALLBACK.items():
+            if k.lower() in name_lower or name_lower in k.lower():
+                return v
+        return (1000.0, 2000.0)
 
 
 def _get_element_notes(analysis: ElementAnalysis, material_name: str) -> str:

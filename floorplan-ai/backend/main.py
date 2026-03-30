@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import predict, health, materials
 from app.routes import cost_breakdown
+from app.routes import live_prices
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -37,9 +38,12 @@ app.include_router(health.router, tags=["Health"])
 app.include_router(predict.router, prefix="/api", tags=["Phase 1-2: Detection"])
 app.include_router(materials.router, prefix="/api", tags=["Phase 4-5: Materials & Explainability"])
 app.include_router(cost_breakdown.router, prefix="/api", tags=["Cost Breakdown Report"])
+app.include_router(live_prices.router, prefix="/api", tags=["Live Material Prices"])
 
 @app.on_event("startup")
 async def startup_event():
+    import threading
+    from app.services.price_scraper import price_cache
     logger.info("Autonomous Structural Intelligence API v3.0 starting up...")
     
     # Verify Detector
@@ -53,6 +57,9 @@ async def startup_event():
     logger.info("Phase 4: Material Analyzer ready")
     logger.info("Phase 5: Gemini Deep Explainability engine ready (1200 tokens, 4-section)")
     logger.info("Bonus: Cost Breakdown Report engine ready — POST /api/cost-breakdown")
+    logger.info("Live Prices: triggering background scrape on startup...")
+    # Warm cache in background so it's ready before first request
+    threading.Thread(target=price_cache.get_prices, daemon=True).start()
 
 @app.on_event("shutdown")
 async def shutdown_event():

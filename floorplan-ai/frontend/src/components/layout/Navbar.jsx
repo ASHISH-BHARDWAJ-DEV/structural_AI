@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Scan, Box, FlaskConical, Menu, X, ShieldCheck } from 'lucide-react';
+import { Home, Scan, Box, FlaskConical, Brain, FileText, Menu, X, ShieldCheck } from 'lucide-react';
 
 const navLinks = [
-  { path: '/app',              label: 'DASHBOARD',  icon: Home        },
-  { path: '/app/detection',    label: 'DETECTION',  icon: Scan        },
-  { path: '/app/visualization',label: '3D VIEW',    icon: Box         },
-  { path: '/app/materials',    label: 'MATERIALS',  icon: FlaskConical },
-  { path: '/app/verify',       label: 'VERIFY',     icon: ShieldCheck  },
+  { path: '/app',                  label: 'DASHBOARD',      icon: Home         },
+  { path: '/app/detection',        label: 'DETECTION',      icon: Scan         },
+  { path: '/app/visualization',    label: '3D VIEW',        icon: Box          },
+  { path: '/app/materials',        label: 'MATERIALS',      icon: FlaskConical },
+  { path: '/app/explainability',   label: 'EXPLAINABILITY', icon: Brain        },
+  { path: '/app/cost-breakdown',   label: 'COST REPORT',    icon: FileText     },
+  { path: '/app/verify',           label: 'VERIFY',         icon: ShieldCheck  },
 ];
 
 export default function Navbar() {
