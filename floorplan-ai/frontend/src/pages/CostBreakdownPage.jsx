@@ -1,12 +1,15 @@
-import { useEffect, useState, useRef, useMemo } from 'react'
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Download, FileText, Loader2, AlertTriangle,
   TrendingUp, TrendingDown, DollarSign, Layers, Building2,
-  ChevronUp, ChevronDown, Minus, RefreshCw, IndianRupee, SlidersHorizontal
+  ChevronUp, ChevronDown, Minus, RefreshCw, IndianRupee, SlidersHorizontal,
+  Wifi, WifiOff, ExternalLink, RefreshCcw, CheckCircle2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { fetchLivePrices, refreshLivePrices } from '../services/api'
+import { FLOOR_CONFIGS, getFloorConfig } from '../data/multiStorey'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -16,8 +19,8 @@ const fmt = (n) => `₹${Number(n).toLocaleString('en-IN', { maximumFractionDigi
 const WALL_ROLES = new Set(['load_bearing', 'partition'])
 const SLAB_ROLES = new Set(['slab'])
 
-// Price database (₹ per m²) — mirrors backend
-const MATERIAL_PRICES = {
+// Static fallback prices (₹ per m²) — used only if API is unavailable
+const FALLBACK_PRICES = {
   'AAC Blocks':            [800,  1200],
   'Red Brick':             [1000, 1500],
   'RCC':                   [2000, 3000],
@@ -28,9 +31,28 @@ const MATERIAL_PRICES = {
 }
 const DEFAULT_PRICE = [1000, 2000]
 
-function getPrice(materialName) {
-  if (MATERIAL_PRICES[materialName]) return MATERIAL_PRICES[materialName]
-  for (const [key, val] of Object.entries(MATERIAL_PRICES)) {
+/**
+ * Resolve [low, high] price per m² for a material.
+ * Prefers live-scraped prices from the API; falls back to static table.
+ */
+function getPriceFromLive(materialName, livePrices) {
+  if (livePrices) {
+    // Exact match
+    if (livePrices[materialName]) {
+      const p = livePrices[materialName]
+      return [p.low, p.high]
+    }
+    // Partial match
+    const nameLower = materialName.toLowerCase()
+    for (const [key, p] of Object.entries(livePrices)) {
+      if (key.toLowerCase().includes(nameLower) || nameLower.includes(key.toLowerCase())) {
+        return [p.low, p.high]
+      }
+    }
+  }
+  // Fallback to static
+  if (FALLBACK_PRICES[materialName]) return FALLBACK_PRICES[materialName]
+  for (const [key, val] of Object.entries(FALLBACK_PRICES)) {
     if (key.toLowerCase().includes(materialName.toLowerCase()) ||
         materialName.toLowerCase().includes(key.toLowerCase())) {
       return val
@@ -96,15 +118,20 @@ function computeArea(analysis, wallHeightM) {
 }
 
 /**
- * Compute all line items from element_analyses + current wallHeight.
- * Pure frontend calculation — instant, no API call.
+ * Compute all line items: applies per-material floor cost factors.
+ * Ground floor base × floorConfig.materialFactors[material]
  */
-function computeLineItems(elementAnalyses, wallHeightM) {
+function computeLineItems(elementAnalyses, wallHeightM, livePrices, floorConfig) {
+  const matFactors = floorConfig?.materialFactors || {}
   return elementAnalyses.map(analysis => {
     const top = analysis.ranked_materials?.[0]
     if (!top) return null
-    const [priceLow, priceHigh] = getPrice(top.name)
-    const priceMid = (priceLow + priceHigh) / 2
+    const [baseLow, baseHigh] = getPriceFromLive(top.name, livePrices)
+    // Apply per-material structural upgrade cost for this floor count
+    const factor = matFactors[top.name] ?? 1.0
+    const priceLow  = parseFloat((baseLow  * factor).toFixed(0))
+    const priceHigh = parseFloat((baseHigh * factor).toFixed(0))
+    const priceMid  = (priceLow + priceHigh) / 2
     const { area: rawArea, formula, affectedByHeight } = computeArea(analysis, wallHeightM)
     const area = parseFloat(rawArea.toFixed(2))
     return {
@@ -118,6 +145,7 @@ function computeLineItems(elementAnalyses, wallHeightM) {
       affected_by_height:    affectedByHeight,
       unit_cost_low:         priceLow,
       unit_cost_high:        priceHigh,
+      floor_material_factor: factor,
       total_cost_low:        parseFloat((area * priceLow).toFixed(0)),
       total_cost_mid:        parseFloat((area * priceMid).toFixed(0)),
       total_cost_high:       parseFloat((area * priceHigh).toFixed(0)),
@@ -125,6 +153,40 @@ function computeLineItems(elementAnalyses, wallHeightM) {
       concerns:              analysis.structural_concerns || [],
     }
   }).filter(Boolean)
+}
+
+/**
+ * Compute multi-storey total from ground-floor summary + floor config.
+ * Real-world model:
+ *   Ground floor = full cost (foundation + structure + roof)
+ *   Each upper floor = addl_factor × ground floor structure cost (no foundation/roof)
+ *   Foundation upgrade = foundationFactor × ground floor structure cost
+ */
+function computeMultiStoreyTotal(grandMid, numFloors, floorConfig) {
+  if (numFloors === 1) return { total: grandMid, foundationExtra: 0, perFloor: [grandMid] }
+
+  // Upper floor cost ratio: 0.80 for 2nd, 0.78 for 3rd, 0.76 for 4th, 0.74 for 5th
+  const upperFloorRatios = [0, 0, 0.80, 0.78, 0.76, 0.74]
+
+  const perFloor = [grandMid] // ground floor
+  let structureTotal = grandMid
+
+  for (let f = 2; f <= numFloors; f++) {
+    const ratio = upperFloorRatios[f] || 0.75
+    const floorCost = parseFloat((grandMid * ratio).toFixed(0))
+    perFloor.push(floorCost)
+    structureTotal += floorCost
+  }
+
+  // Foundation upgrade cost (additional over standard isolated footing)
+  const baseFactor = FLOOR_CONFIGS[0].foundationFactor  // 0.35
+  const thisFactor = floorConfig.foundationFactor       // e.g. 0.60 for G+2
+  const foundationExtra = parseFloat(
+    (grandMid * (thisFactor - baseFactor)).toFixed(0)
+  )
+
+  const total = structureTotal + foundationExtra
+  return { total, foundationExtra, perFloor }
 }
 
 /**
@@ -176,6 +238,136 @@ function computeSummary(lineItems) {
     grandArea: parseFloat(grandArea.toFixed(2)),
     avgCostPerSqm: grandArea > 0 ? parseFloat((grandMid / grandArea).toFixed(0)) : 0,
   }
+}
+
+// ─── Floor Selector (inline) ──────────────────────────────────────────────────
+function FloorSelectorControl({ numFloors, onChange }) {
+  const cfg = getFloorConfig(numFloors)
+  return (
+    <div className="border-4 border-black bg-white shadow-[6px_6px_0_0_#000] p-5">
+      <div className="flex items-center gap-3 mb-4 pb-3 border-b-4 border-black">
+        <Building2 className="w-6 h-6 text-black" strokeWidth={2.5} />
+        <div>
+          <h3 className="font-black text-black pixel-text uppercase tracking-widest text-sm">Multi-Storey · Number of Floors</h3>
+          <p className="text-xs text-black/50 font-bold pixel-text uppercase">
+            {cfg.concreteGrade} concrete · {cfg.steelGrade} steel · {cfg.footingType}
+          </p>
+        </div>
+        <span className="ml-auto text-2xl font-black text-black pixel-text border-4 border-black px-4 py-1 bg-yellow-400">{cfg.label}</span>
+      </div>
+      <div className="flex gap-2 flex-wrap">
+        {FLOOR_CONFIGS.map(c => (
+          <button
+            key={c.floors}
+            onClick={() => onChange(c.floors)}
+            className={`flex-1 min-w-[72px] px-3 py-3 border-4 border-black font-black pixel-text uppercase text-sm transition-all ${
+              numFloors === c.floors
+                ? 'bg-black text-yellow-400 shadow-none translate-x-0.5 translate-y-0.5'
+                : 'bg-white text-black shadow-[4px_4px_0_0_#000] hover:shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5'
+            }`}
+          >
+            <div className="text-xl">{c.label}</div>
+            <div className="text-xs opacity-60 mt-0.5">{c.floors}F</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Multi-Storey Breakdown Panel ─────────────────────────────────────────────
+function MultiStoreyBreakdown({ grandMid, grandLow, grandHigh, numFloors, floorConfig }) {
+  if (numFloors === 1) return null
+  const { total, foundationExtra, perFloor } = computeMultiStoreyTotal(grandMid, numFloors, floorConfig)
+  const { total: totalLow }  = computeMultiStoreyTotal(grandLow,  numFloors, floorConfig)
+  const { total: totalHigh } = computeMultiStoreyTotal(grandHigh, numFloors, floorConfig)
+  const floorLabels = ['Ground Floor', '1st Floor', '2nd Floor', '3rd Floor', '4th Floor']
+
+  return (
+    <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={numFloors}>
+      <h2 className="text-lg font-black text-black pixel-text uppercase tracking-widest mb-4 flex items-center gap-2">
+        <Building2 className="w-5 h-5" /> Multi-Storey Projection · {floorConfig.label}
+      </h2>
+
+      {/* Per-floor cost bars */}
+      <div className="border-4 border-black bg-white shadow-[4px_4px_0_0_#000] p-5 mb-4">
+        <p className="text-xs font-black pixel-text uppercase text-black/50 mb-4">
+          Per-Floor Estimate · Upper floors exclude foundation &amp; roof (saved cost)
+        </p>
+        <div className="space-y-3">
+          {perFloor.map((cost, idx) => {
+            const barPct = Math.round((cost / perFloor[0]) * 100)
+            return (
+              <div key={idx}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-black pixel-text uppercase text-black">
+                    {floorLabels[idx] || `Floor ${idx + 1}`}
+                    {idx === 0 && <span className="ml-2 text-xs text-black/40 font-bold normal-case">(with foundation + roof)</span>}
+                    {idx > 0  && <span className="ml-2 text-xs text-black/40 font-bold normal-case">({barPct}% of ground floor)</span>}
+                  </span>
+                  <span className="text-sm font-black text-black pixel-text">{fmt(cost)}</span>
+                </div>
+                <div className="h-5 bg-gray-200 border-2 border-black relative overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-700 ${idx === 0 ? 'bg-black' : 'bg-yellow-400'}`}
+                    style={{ width: `${barPct}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })}
+          {foundationExtra > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-black pixel-text uppercase text-amber-700">
+                  Foundation Upgrade
+                  <span className="ml-2 text-xs text-black/40 font-bold normal-case">({floorConfig.footingType})</span>
+                </span>
+                <span className="text-sm font-black text-amber-700 pixel-text">{fmt(foundationExtra)}</span>
+              </div>
+              <div className="h-5 bg-amber-100 border-2 border-amber-500 relative overflow-hidden">
+                <div
+                  className="h-full bg-amber-400 transition-all duration-700"
+                  style={{ width: `${Math.min(100, Math.round((foundationExtra / perFloor[0]) * 100))}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Grand total multi-storey */}
+      <div className="border-4 border-black bg-black shadow-[8px_8px_0_0_#fbbf24] p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-gray-400 text-xs font-black pixel-text uppercase tracking-widest">Total {floorConfig.label} Project Estimate</p>
+            <p className="text-5xl font-black text-yellow-400 pixel-text mt-1">{fmt(total)}</p>
+            <p className="text-gray-400 text-xs font-bold pixel-text mt-2">{fmt(totalLow)} – {fmt(totalHigh)} (low–high range)</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'Floors',    value: numFloors },
+              { label: 'Concrete',  value: floorConfig.concreteGrade },
+              { label: 'Steel',     value: floorConfig.steelGrade },
+              { label: 'Columns',   value: floorConfig.columnSize },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-gray-900 border-2 border-yellow-400/30 p-3 text-center">
+                <p className="text-yellow-400 font-black pixel-text text-sm">{value}</p>
+                <p className="text-gray-400 text-xs font-bold pixel-text uppercase mt-0.5">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        {numFloors >= 4 && (
+          <div className="mt-4 pt-4 border-t border-yellow-400/20">
+            <p className="text-amber-400 text-xs font-black pixel-text uppercase">
+              ⚠ {floorConfig.label}: Structural engineer certification & municipal approval mandatory (NBC 2016)
+            </p>
+          </div>
+        )}
+      </div>
+    </motion.section>
+  )
 }
 
 // ─── ROLE COLORS ─────────────────────────────────────────────────────────────
@@ -431,11 +623,44 @@ export default function CostBreakdownPage() {
   const navigate   = useNavigate()
   const reportRef  = useRef(null)
 
-  const [analyses,      setAnalyses]      = useState(null)   // raw element_analyses
+  const [analyses,      setAnalyses]      = useState(null)
   const [structSummary, setStructSummary] = useState(null)
-  const [wallHeight,    setWallHeight]    = useState(3)       // default 3m, same as VisualizationPage
+  const [wallHeight,    setWallHeight]    = useState(3)
   const [error,         setError]         = useState(null)
   const [isPdfExporting, setIsPdfExporting] = useState(false)
+  const [livePrices,    setLivePrices]    = useState(null)
+  const [priceStatus,   setPriceStatus]   = useState('loading')
+  const [liveCount,     setLiveCount]     = useState(0)
+  const [cacheNote,     setCacheNote]     = useState('')
+  const [numFloors,     setNumFloors]     = useState(
+    () => parseInt(localStorage.getItem('numFloors') || '1')
+  )
+
+  const floorConfig = getFloorConfig(numFloors)
+
+  const handleFloorChange = (n) => {
+    setNumFloors(n)
+    localStorage.setItem('numFloors', String(n))
+  }
+
+  // Fetch live prices from backend
+  const loadLivePrices = useCallback(async (force = false) => {
+    setPriceStatus('loading')
+    try {
+      if (force) await refreshLivePrices()
+      const data = await fetchLivePrices()
+      if (data.success && data.prices) {
+        setLivePrices(data.prices)
+        setLiveCount(data.live_count || 0)
+        setCacheNote(data.cache_note || '')
+        setPriceStatus(data.live_count > 0 ? 'live' : 'fallback')
+      } else {
+        setPriceStatus('fallback')
+      }
+    } catch {
+      setPriceStatus('error')
+    }
+  }, [])
 
   // Load analyses from localStorage once
   useEffect(() => {
@@ -446,7 +671,6 @@ export default function CostBreakdownPage() {
         if (result.element_analyses?.length > 0) {
           setAnalyses(result.element_analyses)
           setStructSummary(result.structural_summary || null)
-          // Sync wall height from VisualizationPage if user saved it
           const savedHeight = localStorage.getItem('wallHeight')
           if (savedHeight) setWallHeight(parseFloat(savedHeight))
         } else {
@@ -458,12 +682,13 @@ export default function CostBreakdownPage() {
     } else {
       setError('No analysis data found. Please complete the material analysis phase first.')
     }
+    loadLivePrices()
   }, [])
 
-  // Re-compute costs whenever wallHeight or analyses changes — pure JS, instant
+  // Re-compute costs whenever wallHeight, analyses, livePrices, or numFloors changes
   const lineItems = useMemo(
-    () => analyses ? computeLineItems(analyses, wallHeight) : [],
-    [analyses, wallHeight]
+    () => analyses ? computeLineItems(analyses, wallHeight, livePrices, floorConfig) : [],
+    [analyses, wallHeight, livePrices, numFloors]
   )
 
   const summary = useMemo(() => computeSummary(lineItems), [lineItems])
@@ -488,7 +713,7 @@ export default function CostBreakdownPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate('/app/materials')}
+              onClick={() => navigate('/app/explainability')}
               className="p-3 bg-white border-4 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
             >
               <ArrowLeft className="w-6 h-6 text-black stroke-[3]" />
@@ -498,22 +723,43 @@ export default function CostBreakdownPage() {
                 Cost Breakdown
               </h1>
               <p className="text-black font-bold pixel-text uppercase tracking-wider opacity-80 text-sm">
-                Live cost calculation · Wall height {wallHeight}m · PDF Export
+                Phase 6 · {priceStatus === 'live'
+                  ? `Live prices · ${liveCount} scraped · Wall ${wallHeight}m`
+                  : `Baseline prices · Wall ${wallHeight}m · Live fetch ${priceStatus}`
+                }
               </p>
             </div>
           </div>
 
-          {analyses && (
+          <div className="flex items-center gap-2">
+            {/* Live price refresh button */}
             <button
-              onClick={handleExportPDF}
-              disabled={isPdfExporting}
-              id="export-pdf-btn"
-              className="flex items-center gap-2 px-6 py-3 bg-black text-yellow-400 border-4 border-black shadow-[4px_4px_0_0_#fbbf24] hover:shadow-[2px_2px_0_0_#fbbf24] hover:translate-x-0.5 hover:translate-y-0.5 transition-all font-black pixel-text uppercase text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+              onClick={() => { loadLivePrices(true); toast.success('Refreshing live prices...') }}
+              disabled={priceStatus === 'loading'}
+              title="Refresh live material prices from the web"
+              className="flex items-center gap-2 px-4 py-2 bg-white border-4 border-black shadow-[4px_4px_0_0_#000] hover:shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all font-black pixel-text uppercase text-xs text-black disabled:opacity-50"
             >
-              {isPdfExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              Export PDF
+              {priceStatus === 'loading'
+                ? <Loader2 className="w-4 h-4 animate-spin" />
+                : priceStatus === 'live'
+                  ? <Wifi className="w-4 h-4 text-green-600" />
+                  : <WifiOff className="w-4 h-4 text-red-500" />
+              }
+              {priceStatus === 'live' ? 'Live' : priceStatus === 'loading' ? 'Fetching...' : 'Refresh'}
             </button>
-          )}
+
+            {analyses && (
+              <button
+                onClick={handleExportPDF}
+                disabled={isPdfExporting}
+                id="export-pdf-btn"
+                className="flex items-center gap-2 px-6 py-3 bg-black text-yellow-400 border-4 border-black shadow-[4px_4px_0_0_#fbbf24] hover:shadow-[2px_2px_0_0_#fbbf24] hover:translate-x-0.5 hover:translate-y-0.5 transition-all font-black pixel-text uppercase text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isPdfExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                Export PDF
+              </button>
+            )}
+          </div>
         </div>
 
         {/* ── Error ── */}
@@ -539,57 +785,149 @@ export default function CostBreakdownPage() {
         {analyses && !error && (
           <div className="space-y-8">
 
-            {/* Wall Height Control — outside reportRef so it doesn't print */}
-            <WallHeightControl wallHeight={wallHeight} onChange={setWallHeight} />
+            {/* ── Live Price Source Banner ── */}
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`border-4 border-black p-4 flex flex-wrap items-center justify-between gap-3 shadow-[4px_4px_0_0_#000] ${
+                priceStatus === 'live' ? 'bg-green-50' : priceStatus === 'loading' ? 'bg-yellow-50' : 'bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                {priceStatus === 'live'
+                  ? <Wifi className="w-5 h-5 text-green-600 shrink-0" strokeWidth={2.5} />
+                  : priceStatus === 'loading'
+                    ? <Loader2 className="w-5 h-5 text-yellow-600 animate-spin shrink-0" />
+                    : <WifiOff className="w-5 h-5 text-gray-500 shrink-0" strokeWidth={2.5} />
+                }
+                <div>
+                  <p className="text-sm font-black pixel-text uppercase tracking-widest text-black">
+                    {priceStatus === 'live'
+                      ? `Live Prices Active — ${liveCount} materials scraped from Indian construction sites`
+                      : priceStatus === 'loading'
+                        ? 'Fetching live prices from construction sites...'
+                        : 'Using Baseline Prices (2025-26 compiled data)'
+                    }
+                  </p>
+                  <p className="text-xs font-bold text-black/50 pixel-text uppercase mt-0.5">{cacheNote}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {priceStatus === 'live' && (
+                  <a
+                    href="https://www.houseyog.com/blog/building-material-cost-list/"
+                    target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-xs font-black px-3 py-1.5 bg-black text-yellow-400 border-2 border-black pixel-text uppercase hover:bg-gray-900 transition-colors"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Source: Houseyog
+                  </a>
+                )}
+                <button
+                  onClick={() => { loadLivePrices(true); toast.loading('Scraping latest prices...', { duration: 3000 }) }}
+                  disabled={priceStatus === 'loading'}
+                  className="flex items-center gap-1 text-xs font-black px-3 py-1.5 bg-white border-2 border-black pixel-text uppercase hover:bg-gray-100 transition-colors disabled:opacity-50"
+                >
+                  <RefreshCcw className="w-3 h-3" />
+                  Refresh
+                </button>
+              </div>
+            </motion.div>
+
+            {/* Wall Height + Floor Controls — outside reportRef so not in PDF */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <WallHeightControl wallHeight={wallHeight} onChange={setWallHeight} />
+              <FloorSelectorControl numFloors={numFloors} onChange={handleFloorChange} />
+            </div>
 
             {/* Everything below is captured in PDF */}
             <div ref={reportRef} className="space-y-8">
 
               {/* Report Header Banner */}
-              <div className="bg-black border-4 border-black shadow-[8px_8px_0_0_#fbbf24] p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <FileText className="w-8 h-8 text-yellow-400" />
-                      <h2 className="text-2xl font-black text-yellow-400 pixel-text uppercase tracking-widest">
-                        Structural Cost Estimate
-                      </h2>
+              {(() => {
+                const msTotal = computeMultiStoreyTotal(summary.grandMid, numFloors, floorConfig)
+                const msTotalLow  = computeMultiStoreyTotal(summary.grandLow,  numFloors, floorConfig)
+                const msTotalHigh = computeMultiStoreyTotal(summary.grandHigh, numFloors, floorConfig)
+                const displayMid  = numFloors > 1 ? msTotal.total  : summary.grandMid
+                const displayLow  = numFloors > 1 ? msTotalLow.total  : summary.grandLow
+                const displayHigh = numFloors > 1 ? msTotalHigh.total : summary.grandHigh
+                return (
+                  <>
+                    {/* Banner */}
+                    <div className="bg-black border-4 border-black shadow-[8px_8px_0_0_#fbbf24] p-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <div className="flex items-center gap-3 mb-2">
+                            <FileText className="w-8 h-8 text-yellow-400" />
+                            <h2 className="text-2xl font-black text-yellow-400 pixel-text uppercase tracking-widest">
+                              Structural Cost Estimate
+                            </h2>
+                          </div>
+                          <p className="text-gray-400 font-bold pixel-text uppercase text-xs tracking-widest">
+                            {floorConfig.label} · Wall {wallHeight}m · {new Date().toLocaleDateString('en-IN')} · ₹ INR
+                          </p>
+                          {numFloors > 1 && (
+                            <p className="text-gray-500 text-xs font-bold pixel-text mt-1">
+                              Ground floor only: {fmt(summary.grandMid)}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-4xl font-black text-yellow-400 pixel-text">{fmt(displayMid)}</span>
+                          <span className="text-gray-400 text-xs font-bold pixel-text uppercase">
+                            {numFloors > 1 ? `${floorConfig.label} Total (Mid)` : 'Ground Floor Mid-Range'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-gray-400 font-bold pixel-text uppercase text-xs tracking-widest">
-                      Wall Height: {wallHeight}m · {new Date().toLocaleDateString('en-IN')} · Currency: ₹ INR
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-4xl font-black text-yellow-400 pixel-text">{fmt(summary.grandMid)}</span>
-                    <span className="text-gray-400 text-xs font-bold pixel-text uppercase">Mid-Range Total</span>
-                  </div>
-                </div>
-              </div>
 
-              {/* Grand Total Scenarios */}
-              <section>
-                <h2 className="text-lg font-black text-black pixel-text uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" /> Grand Total Scenarios
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <ScenarioBadge label="Conservative (Low)" value={summary.grandLow}  scenario="low" />
-                  <ScenarioBadge label="Realistic (Mid)"    value={summary.grandMid}  scenario="mid" />
-                  <ScenarioBadge label="Premium (High)"     value={summary.grandHigh} scenario="high" />
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-                  {[
-                    { label: 'Total Elements', value: lineItems.length },
-                    { label: 'Total Area',     value: `${summary.grandArea} m²` },
-                    { label: 'Avg ₹ / m²',     value: fmt(summary.avgCostPerSqm) },
-                    { label: 'Wall Height',    value: `${wallHeight}m` },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="border-4 border-black p-3 bg-white shadow-[3px_3px_0_0_#000] text-center">
-                      <div className="text-xl font-black text-black pixel-text">{value}</div>
-                      <div className="text-xs font-bold text-gray-500 pixel-text uppercase mt-0.5">{label}</div>
-                    </div>
-                  ))}
-                </div>
-              </section>
+                    {/* Grand Total Scenarios */}
+                    <section>
+                      <h2 className="text-lg font-black text-black pixel-text uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <DollarSign className="w-5 h-5" />
+                        {numFloors > 1 ? `${floorConfig.label} Total Cost Scenarios` : 'Grand Total Scenarios'}
+                      </h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <ScenarioBadge label="Conservative (Low)" value={displayLow}  scenario="low" />
+                        <ScenarioBadge label="Realistic (Mid)"    value={displayMid}  scenario="mid" />
+                        <ScenarioBadge label="Premium (High)"     value={displayHigh} scenario="high" />
+                      </div>
+                      {numFloors > 1 && (
+                        <p className="text-xs font-bold text-gray-500 pixel-text uppercase mt-3">
+                          ↑ Includes all {numFloors} floors · foundation upgrade · structural grade changes.
+                          Ground floor alone: {fmt(summary.grandLow)} – {fmt(summary.grandHigh)}
+                        </p>
+                      )}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+                        {[
+                          { label: 'Floors',         value: floorConfig.label },
+                          { label: 'Total Area',     value: `${summary.grandArea} m²` },
+                          { label: 'Avg ₹/m² (GF)',  value: fmt(summary.avgCostPerSqm) },
+                          { label: 'Wall Height',    value: `${wallHeight}m` },
+                          { label: 'Concrete',       value: floorConfig.concreteGrade },
+                          { label: 'Steel Grade',    value: floorConfig.steelGrade },
+                          { label: 'Foundation',     value: floorConfig.footingType.split('/')[0].trim() },
+                          { label: 'Elements',       value: lineItems.length },
+                        ].map(({ label, value }) => (
+                          <div key={label} className="border-4 border-black p-3 bg-white shadow-[3px_3px_0_0_#000] text-center">
+                            <div className="text-xl font-black text-black pixel-text">{value}</div>
+                            <div className="text-xs font-bold text-gray-500 pixel-text uppercase mt-0.5">{label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+
+                    {/* Multi-Storey Projection — shown only when floors > 1 */}
+                    <MultiStoreyBreakdown
+                      grandMid={summary.grandMid}
+                      grandLow={summary.grandLow}
+                      grandHigh={summary.grandHigh}
+                      numFloors={numFloors}
+                      floorConfig={floorConfig}
+                    />
+                  </>
+                )
+              })()}
 
               {/* Category Breakdown */}
               <section>
@@ -627,6 +965,12 @@ export default function CostBreakdownPage() {
                   <li>• <span className="text-blue-400">Windows</span>: Span × {(wallHeight * 0.45).toFixed(2)}m (45% × {wallHeight}m wall) × ₹/m²</li>
                   <li>• <span className="text-gray-400">Slabs/Columns</span>: Plan area from detection (unchanged by height slider)</li>
                   <li>• All costs in Indian Rupees (₹) — material costs only, no labour included</li>
+                  <li>
+                    {priceStatus === 'live'
+                      ? <>• <span className="text-green-400">Live prices</span>: Scraped from Houseyog.com (building-material-cost-list) — updated every 6 hours</>
+                      : <>• <span className="text-yellow-400">Baseline prices</span>: 2025-26 compiled market data (live scraping unavailable)</>
+                    }
+                  </li>
                   <li>• This report is AI-generated and should be reviewed by a qualified engineer</li>
                 </ul>
               </div>

@@ -47,4 +47,14 @@ export const healthCheck = async () => {
   return response.data
 }
 
+export const fetchLivePrices = async () => {
+  const response = await api.get('/api/live-prices')
+  return response.data
+}
+
+export const refreshLivePrices = async () => {
+  const response = await api.post('/api/live-prices/refresh')
+  return response.data
+}
+
 export default api
