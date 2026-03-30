@@ -30,31 +30,36 @@ class FloorPlanDetector:
     def __init__(self, model_path: str = None):
         """Initialize the floor plan detector with YOLOv8 model."""
         if model_path is None:
-            # Look for model in multiple locations
+            # Look for model relative to this file
+            current_dir = Path(__file__).parent.parent.parent
             possible_paths = [
+                current_dir / "weights" / "best.pt",
                 Path("weights/best.pt"),
                 Path("backend/weights/best.pt"),
-                Path("app/weights/best.pt"),
-                Path("../weights/best.pt"),
+                Path("floorplan-ai/backend/weights/best.pt"),
             ]
             
-            model_path = None
             for path in possible_paths:
                 if path.exists():
-                    model_path = str(path)
+                    model_path = str(path.absolute())
                     break
             
             if model_path is None:
                 # Use a pretrained YOLOv8 model as fallback
-                logger.warning("Custom weights not found. Using pretrained YOLOv8n for demo.")
+                logger.warning("Custom weights NOT found in any search path!")
+                logger.warning(f"Searched: {[str(p) for p in possible_paths]}")
+                logger.warning("Using pretrained YOLOv8n for demo.")
                 model_path = "yolov8n.pt"
         
-        logger.info(f"Loading model from: {model_path}")
+        logger.info(f"--- MODEL INITIALIZATION ---")
+        logger.info(f"Loading weights from: {model_path}")
         self.model = YOLO(model_path)
         
         # Get class names from model
         self.class_names = self.model.names
-        logger.info(f"Model loaded. Classes: {self.class_names}")
+        logger.info(f"Model loaded successfully.")
+        logger.info(f"Detected Classes: {self.class_names}")
+        logger.info(f"-----------------------------")
     
     def get_color_for_class(self, class_name: str) -> str:
         """Get consistent color for a class."""

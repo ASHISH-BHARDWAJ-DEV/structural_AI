@@ -6,6 +6,7 @@ import DetectionPage from './pages/DetectionPage';
 import VisualizationPage from './pages/VisualizationPage';
 import MaterialsPage from './pages/MaterialsPage';
 import CostBreakdownPage from './pages/CostBreakdownPage';
+import BlockchainVerifyPage from './pages/BlockchainVerifyPage';
 import Navbar from './components/layout/Navbar';
 
 // Main app layout with navbar
@@ -33,6 +34,7 @@ function App() {
         <Route path="visualization" element={<VisualizationPage />} />
         <Route path="materials" element={<MaterialsPage />} />
         <Route path="cost-breakdown" element={<CostBreakdownPage />} />
+        <Route path="verify" element={<BlockchainVerifyPage />} />
       </Route>
     </Routes>
   );
