@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, AlertTriangle, CheckCircle, Loader2, FileText } from 'lucide-react'
+import { ArrowLeft, ArrowRight, AlertTriangle, CheckCircle, Loader2, Brain, Building2, ChevronUp, ChevronDown, Info, CheckCircle2, XCircle } from 'lucide-react'
 import ElementSelector from '../components/materials/ElementSelector'
 import MaterialRankingTable from '../components/materials/MaterialRankingTable'
-import ExplainabilityCard from '../components/materials/ExplainabilityCard'
 import { analyzeMaterials } from '../services/api'
 import toast from 'react-hot-toast'
+import { FLOOR_CONFIGS, getFloorConfig, FLOOR_MATERIAL_TIPS } from '../data/multiStorey'
 
 // ─── Structural Summary Bar ────────────────────────────────────────────────────
 function SummaryBar({ summary }) {
@@ -35,6 +35,115 @@ function SummaryBar({ summary }) {
   )
 }
 
+// ─── Floor Selector ────────────────────────────────────────────────────────────
+function FloorSelector({ numFloors, onChange }) {
+  return (
+    <div className="border-4 border-black bg-white shadow-[6px_6px_0_0_#000] p-5 mb-6">
+      <div className="flex items-center gap-3 mb-4 pb-3 border-b-4 border-black">
+        <Building2 className="w-6 h-6 text-black" strokeWidth={2.5} />
+        <div>
+          <h3 className="font-black text-black pixel-text uppercase tracking-widest text-sm">Multi-Storey Configuration</h3>
+          <p className="text-xs text-black/50 font-bold pixel-text uppercase">Select number of floors to update material &amp; cost projections</p>
+        </div>
+      </div>
+      <div className="flex gap-2 flex-wrap">
+        {FLOOR_CONFIGS.map(cfg => (
+          <button
+            key={cfg.floors}
+            onClick={() => onChange(cfg.floors)}
+            className={`flex-1 min-w-[80px] px-4 py-3 border-4 border-black font-black pixel-text uppercase text-sm transition-all ${
+              numFloors === cfg.floors
+                ? 'bg-black text-yellow-400 shadow-none translate-x-0.5 translate-y-0.5'
+                : 'bg-white text-black shadow-[4px_4px_0_0_#000] hover:shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5'
+            }`}
+          >
+            <div className="text-lg">{cfg.label}</div>
+            <div className="text-xs opacity-70 mt-0.5">{cfg.floors} floor{cfg.floors > 1 ? 's' : ''}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Multi-Storey Requirements Panel ──────────────────────────────────────────
+function MultiStoreyPanel({ numFloors }) {
+  const cfg  = getFloorConfig(numFloors)
+  const tips = FLOOR_MATERIAL_TIPS[numFloors] || {}
+  if (numFloors === 1) return null
+
+  const specItems = [
+    { label: 'Concrete Grade',  value: cfg.concreteGrade,  icon: '🧱' },
+    { label: 'Steel Grade',     value: cfg.steelGrade,     icon: '🔩' },
+    { label: 'Column Size',     value: cfg.columnSize,     icon: '📐' },
+    { label: 'Slab Thickness',  value: cfg.slabThickness,  icon: '⬛' },
+    { label: 'Foundation Type', value: cfg.footingType,    icon: '⚓' },
+  ]
+
+  return (
+    <motion.div
+      key={numFloors}
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="border-4 border-black bg-gray-900 shadow-[6px_6px_0_0_#fbbf24] p-5 mb-6"
+    >
+      <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-yellow-400/30">
+        <Info className="w-5 h-5 text-yellow-400" strokeWidth={2.5} />
+        <h3 className="font-black text-yellow-400 pixel-text uppercase tracking-widest text-sm">
+          {cfg.label} Structural Requirements (IS 456 / NBC 2016)
+        </h3>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+        {specItems.map(({ label, value, icon }) => (
+          <div key={label} className="bg-black border-2 border-yellow-400/30 p-3 text-center">
+            <div className="text-xl mb-1">{icon}</div>
+            <div className="text-yellow-400 font-black pixel-text text-sm">{value}</div>
+            <div className="text-gray-400 text-xs font-bold pixel-text uppercase mt-1">{label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <p className="text-gray-400 text-xs font-black pixel-text uppercase tracking-widest mb-2">Key Requirements</p>
+          <ul className="space-y-1">
+            {cfg.notes.map((note, i) => (
+              <li key={i} className="flex items-start gap-2 text-xs text-gray-300 font-bold">
+                <span className="text-yellow-400 mt-0.5 shrink-0">▸</span>
+                {note}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <p className="text-gray-400 text-xs font-black pixel-text uppercase tracking-widest mb-2">Material Advisory</p>
+          {tips.preferred?.length > 0 && (
+            <div className="mb-2">
+              <p className="text-green-400 text-xs font-black pixel-text uppercase mb-1">✓ Preferred</p>
+              <div className="flex flex-wrap gap-1">
+                {tips.preferred.map(m => (
+                  <span key={m} className="px-2 py-0.5 bg-green-900/50 border border-green-500/50 text-green-300 text-xs font-bold pixel-text">{m}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {tips.avoid?.length > 0 && (
+            <div>
+              <p className="text-red-400 text-xs font-black pixel-text uppercase mb-1">✗ Not Recommended</p>
+              <div className="flex flex-wrap gap-1">
+                {tips.avoid.map(m => (
+                  <span key={m} className="px-2 py-0.5 bg-red-900/50 border border-red-500/50 text-red-300 text-xs font-bold pixel-text">{m}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function MaterialsPage() {
   const navigate = useNavigate()
@@ -44,7 +153,15 @@ export default function MaterialsPage() {
   const [isLoading,          setIsLoading]          = useState(false)
   const [error,              setError]              = useState(null)
   const [selectedElementId,  setSelectedElementId]  = useState(null)
-  const [activeTab,          setActiveTab]          = useState('element')  // 'element' | 'overall'
+  const [activeTab,          setActiveTab]          = useState('element')
+  const [numFloors,          setNumFloors]          = useState(
+    () => parseInt(localStorage.getItem('numFloors') || '1')
+  )
+
+  const handleFloorChange = (n) => {
+    setNumFloors(n)
+    localStorage.setItem('numFloors', String(n))
+  }
 
   // Load detection data from localStorage
   useEffect(() => {
@@ -75,7 +192,7 @@ export default function MaterialsPage() {
       const result = await analyzeMaterials(data)
       if (result.success) {
         setAnalysisResult(result)
-        // Persist for CostBreakdownPage
+        // Persist for CostBreakdownPage & ExplainabilityPage
         localStorage.setItem('materialAnalysisResult', JSON.stringify(result))
         // Auto-select first element
         if (result.element_analyses?.length > 0) {
@@ -121,7 +238,7 @@ export default function MaterialsPage() {
                 Material Analysis
               </h1>
               <p className="text-black font-bold pixel-text uppercase tracking-wider opacity-80 text-sm">
-                Phase 4+5 · Tradeoff Scoring · Gemini Explainability
+                Phase 4 · Tradeoff Scoring · Ranked Material Options
               </p>
             </div>
           </div>
@@ -141,15 +258,7 @@ export default function MaterialsPage() {
                   <span className="text-white font-black pixel-text uppercase text-sm">All Clear</span>
                 </div>
               )}
-              <button
-                onClick={() => navigate('/app/cost-breakdown')}
-                id="cost-report-btn"
-                className="flex items-center gap-2 px-5 py-2 bg-yellow-400 border-4 border-black shadow-[4px_4px_0_0_#000] hover:shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all font-black pixel-text uppercase text-sm text-black"
-              >
-                <FileText className="w-4 h-4" />
-                Cost Report
-                <ArrowRight className="w-4 h-4" />
-              </button>
+
             </div>
           )}
         </div>
@@ -200,6 +309,12 @@ export default function MaterialsPage() {
             {/* Summary Stats Bar */}
             <SummaryBar summary={analysisResult.structural_summary} />
 
+            {/* Multi-Storey Selector */}
+            <FloorSelector numFloors={numFloors} onChange={handleFloorChange} />
+
+            {/* Structural Requirements Panel (hidden for G only) */}
+            <MultiStoreyPanel numFloors={numFloors} />
+
             {/* Tab Switch */}
             <div className="flex gap-0 mb-6 border-4 border-black w-fit">
               {[
@@ -238,13 +353,10 @@ export default function MaterialsPage() {
                     />
                   </div>
 
-                  {/* Right: Material Ranking + Explainability */}
-                  <div className="lg:col-span-3 space-y-6">
+                  {/* Right: Material Ranking */}
+                  <div className="lg:col-span-3">
                     {selectedAnalysis ? (
-                      <>
-                        <MaterialRankingTable analysis={selectedAnalysis} />
-                        <ExplainabilityCard analysis={selectedAnalysis} />
-                      </>
+                      <MaterialRankingTable analysis={selectedAnalysis} />
                     ) : (
                       <div className="voxel-panel p-12 text-center">
                         <p className="text-2xl font-black text-black pixel-text uppercase">
@@ -265,13 +377,44 @@ export default function MaterialsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
+                  className="voxel-panel p-8 text-center"
                 >
-                  <ExplainabilityCard
-                    overallExplanation={analysisResult.overall_explanation}
-                  />
+                  <Brain className="w-12 h-12 text-black/30 mx-auto mb-3" />
+                  <p className="text-xl font-black text-black pixel-text uppercase mb-2">
+                    Overall Assessment
+                  </p>
+                  <p className="text-black/60 font-bold pixel-text uppercase text-sm">
+                    View the full AI-generated structural report on the Explainability page
+                  </p>
+                  <button
+                    onClick={() => navigate('/app/explainability')}
+                    className="mt-6 flex items-center gap-2 px-6 py-3 bg-black text-yellow-400 border-4 border-black shadow-[4px_4px_0_0_#fbbf24] hover:shadow-[2px_2px_0_0_#fbbf24] hover:translate-x-0.5 hover:translate-y-0.5 transition-all font-black pixel-text uppercase text-sm mx-auto"
+                  >
+                    <Brain className="w-4 h-4" />
+                    Go to Explainability
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* ── CTA: Go to Explainability ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mt-8"
+            >
+              <button
+                onClick={() => navigate('/app/explainability')}
+                id="to-explainability-btn"
+                className="w-full bg-black text-yellow-400 border-4 border-black px-6 py-4 font-black uppercase pixel-text tracking-[0.2em] transition-transform hover:-translate-y-1 shadow-[6px_6px_0_0_#fbbf24] active:translate-y-1 active:shadow-[0px_0px_0_0_#000] flex items-center justify-center gap-3 text-2xl"
+              >
+                <Brain className="w-6 h-6 stroke-[3]" />
+                Phase 5 · Explainability
+                <ArrowRight className="w-6 h-6 stroke-[3]" />
+              </button>
+            </motion.div>
           </>
         )}
       </div>

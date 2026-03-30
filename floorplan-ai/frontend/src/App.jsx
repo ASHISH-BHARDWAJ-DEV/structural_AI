@@ -6,6 +6,7 @@ import DetectionPage from './pages/DetectionPage';
 import VisualizationPage from './pages/VisualizationPage';
 import MaterialsPage from './pages/MaterialsPage';
 import CostBreakdownPage from './pages/CostBreakdownPage';
+import ExplainabilityPage from './pages/ExplainabilityPage';
 import Navbar from './components/layout/Navbar';
 
 // Main app layout with navbar
@@ -32,6 +33,7 @@ function App() {
         <Route path="detection" element={<DetectionPage />} />
         <Route path="visualization" element={<VisualizationPage />} />
         <Route path="materials" element={<MaterialsPage />} />
+        <Route path="explainability" element={<ExplainabilityPage />} />
         <Route path="cost-breakdown" element={<CostBreakdownPage />} />
       </Route>
     </Routes>
