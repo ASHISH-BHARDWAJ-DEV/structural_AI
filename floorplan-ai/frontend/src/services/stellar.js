@@ -1,5 +1,6 @@
 import { 
-  getPublicKey, 
+  requestAccess, 
+  getAddress,
   signTransaction, 
   isConnected 
 } from "@stellar/freighter-api";
@@ -10,26 +11,37 @@ import {
   TransactionBuilder, 
   xdr,
   nativeToScVal,
-  scValToNative
+  scValToNative,
+  Account,
+  Keypair
 } from "@stellar/stellar-sdk";
 
 const SOROBAN_RPC_URL = "https://soroban-testnet.stellar.org:443";
-const NETWORK_PASSPHRASE = import.meta.env.VITE_STELLAR_NETWORK === "TESTNET" 
-  ? Networks.TESTNET 
-  : Networks.PUBLIC;
 const CONTRACT_ID = import.meta.env.VITE_SOROBAN_CONTRACT_ID;
+
+/** True when no contract is deployed yet — runs a local simulation instead */
+export const DEMO_MODE = !CONTRACT_ID;
 
 const server = new rpc.Server(SOROBAN_RPC_URL);
 
 /**
  * Connects to the Freighter wallet and returns the user's public key.
+ * Uses the modern requestAccess() API (replaces deprecated getPublicKey).
  * @returns {Promise<string>} - The user's public key.
  */
 export const connectFreighter = async () => {
-  if (!(await isConnected())) {
+  // Check if extension is installed
+  const connected = await isConnected();
+  if (!connected || !connected.isConnected) {
     throw new Error("Freighter wallet extension not found");
   }
-  const publicKey = await getPublicKey();
+
+  // requestAccess() prompts the user to authorize and returns the public key
+  const accessResult = await requestAccess();
+  if (accessResult.error) {
+    throw new Error("Transaction cancelled");
+  }
+  const publicKey = accessResult.address;
   if (!publicKey) {
     throw new Error("User denied access to Freighter wallet.");
   }
@@ -55,54 +67,58 @@ const hexToUint8Array = (hexString) => {
  * @param {string} publicKey - The user's public key from Freighter.
  */
 export const anchorHashOnChain = async (projectId, hexHash, costMid, publicKey) => {
-  if (!CONTRACT_ID) {
-    throw new Error("Contract ID not configured (VITE_SOROBAN_CONTRACT_ID)");
+  // ── DEMO MODE: no contract deployed yet ──────────────────────────────────────
+  if (DEMO_MODE) {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Return a plausible fake tx hash so the whole flow can be tested
+    const fakeTxHash = `DEMO_${hexHash.substring(0, 16).toUpperCase()}...${Date.now()}`;
+    return fakeTxHash;
   }
 
   const contract = new Contract(CONTRACT_ID);
-  const hashBytes = hexToUint8Array(hexHash);
 
   // 1. Fetch source account to build transaction
   const sourceAccount = await server.getAccount(publicKey);
 
-  // 2. Build the initial transaction for simulation
+  // 2. Build the initial transaction
   let tx = new TransactionBuilder(sourceAccount, {
     fee: "1000",
-    networkPassphrase: NETWORK_PASSPHRASE,
+    networkPassphrase: Networks.TESTNET,
   })
     .addOperation(
       contract.call(
         "anchor_report",
         nativeToScVal(projectId),
-        nativeToScVal(hashBytes),
+        nativeToScVal(hexToUint8Array(hexHash)),
         nativeToScVal(BigInt(costMid))
       )
     )
     .setTimeout(30)
     .build();
 
-  // 3. Simulate to calculate resource usage (Soroban requirement)
-  const simulation = await server.simulateTransaction(tx);
-  if (rpc.Api.isSimulationError(simulation)) {
-    throw new Error(`Simulation failed: ${simulation.error}`);
-  }
+  // 3. Prepare the transaction (simulate + assemble in one go)
+  const preparedTx = await server.prepareTransaction(tx);
 
-  // 4. Update transaction with simulation results
-  tx = rpc.assembleTransaction(tx, simulation).build();
-
-  // 5. Sign with Freighter
-  const signedXdr = await signTransaction(tx.toXDR(), {
-    network: "TESTNET",
+  // 4. Sign with Freighter (passing XDR string and explicit networkPassphrase)
+  const result = await signTransaction(preparedTx.toXDR(), {
+    networkPassphrase: Networks.TESTNET,
   });
 
-  // 6. Submit signed transaction
-  const result = await server.sendTransaction(TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE));
-  
-  if (result.status === "ERROR") {
-    throw new Error(`Transaction failed: ${JSON.stringify(result.errorResultXdr)}`);
+  if (result.error) {
+    throw new Error(`Freighter error: ${result.error}`);
   }
 
-  return result.hash;
+  const signedXdr = result.signedTxXdr;
+
+  // 5. Submit signed transaction
+  const submissionResult = await server.sendTransaction(TransactionBuilder.fromXDR(signedXdr, Networks.TESTNET));
+  
+  if (submissionResult.status === "ERROR") {
+    throw new Error(`Transaction failed: ${JSON.stringify(submissionResult.errorResultXdr)}`);
+  }
+
+  return submissionResult.hash;
 };
 
 /**
@@ -118,12 +134,13 @@ export const checkHashOnChain = async (projectId) => {
   const contract = new Contract(CONTRACT_ID);
 
   // Simulate call for read-only view function
-  // We use a dummy builder for simulation
+  // We use a valid random keypair for simulation to pass checksum validation
+  const dummySource = Keypair.random().publicKey();
   const tx = new TransactionBuilder(
-    await server.getLatestLedger().then(l => new rpc.Account("GCBBP563S6NIDYDKN2QVQH3G2T755RNYD2UCR55F37QZ66G6CCW3T56Z", "0")), // Placeholder
+    new Account(dummySource, "0"),
     {
       fee: "100",
-      networkPassphrase: NETWORK_PASSPHRASE,
+      networkPassphrase: Networks.TESTNET,
     }
   )
     .addOperation(contract.call("verify_report", nativeToScVal(projectId)))
