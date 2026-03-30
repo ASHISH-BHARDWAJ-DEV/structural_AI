@@ -11,64 +11,64 @@ import {
 const SEVERITY_CONFIG = {
   critical: {
     Icon: AlertCircle,
-    bg: 'bg-red-950', border: 'border-red-500',
-    text: 'text-red-300', badge: 'bg-red-500 text-white',
-    label: 'CRITICAL', glow: 'shadow-[0_0_12px_rgba(239,68,68,0.4)]',
+    bg: 'bg-white', border: 'border-red-600',
+    text: 'text-red-700', badge: 'bg-red-600 text-white',
+    label: 'CRITICAL', glow: 'shadow-[4px_4px_0_0_#dc2626]',
   },
   warning: {
     Icon: AlertTriangle,
-    bg: 'bg-yellow-950', border: 'border-yellow-500',
-    text: 'text-yellow-300', badge: 'bg-yellow-400 text-black',
-    label: 'WARNING', glow: 'shadow-[0_0_12px_rgba(234,179,8,0.3)]',
+    bg: 'bg-white', border: 'border-yellow-600',
+    text: 'text-yellow-800', badge: 'bg-yellow-400 text-black',
+    label: 'WARNING', glow: 'shadow-[4px_4px_0_0_#ca8a04]',
   },
   info: {
     Icon: Info,
-    bg: 'bg-blue-950', border: 'border-blue-500',
-    text: 'text-blue-300', badge: 'bg-blue-500 text-white',
-    label: 'INFO', glow: '',
+    bg: 'bg-white', border: 'border-blue-600',
+    text: 'text-blue-700', badge: 'bg-blue-400 text-black',
+    label: 'INFO', glow: 'shadow-[4px_4px_0_0_#2563eb]',
   },
 }
 
 const SECTION_CONFIGS = {
   'Material Recommendation': {
     emoji: '🏗️', Icon: HardHat,
-    bg: 'bg-blue-950', accent: 'border-l-[5px] border-blue-400',
-    label: 'text-blue-300', tag: 'bg-blue-900 text-blue-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-blue-500',
+    label: 'text-black', tag: 'bg-blue-50 text-blue-800 border-2 border-blue-400',
   },
   'Cost vs Strength Tradeoff': {
     emoji: '⚖️', Icon: BarChart3,
-    bg: 'bg-purple-950', accent: 'border-l-[5px] border-purple-400',
-    label: 'text-purple-300', tag: 'bg-purple-900 text-purple-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-purple-500',
+    label: 'text-black', tag: 'bg-purple-50 text-purple-800 border-2 border-purple-400',
   },
   'Structural Concerns': {
     emoji: '⚠️', Icon: ShieldAlert,
-    bg: 'bg-red-950', accent: 'border-l-[5px] border-red-400',
-    label: 'text-red-300', tag: 'bg-red-900 text-red-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-red-500',
+    label: 'text-black', tag: 'bg-red-50 text-red-800 border-2 border-red-400',
   },
   'Builder Guidance': {
     emoji: '👷', Icon: HardHat,
-    bg: 'bg-green-950', accent: 'border-l-[5px] border-green-400',
-    label: 'text-green-300', tag: 'bg-green-900 text-green-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-green-500',
+    label: 'text-black', tag: 'bg-green-50 text-green-800 border-2 border-green-400',
   },
   'Overall Assessment': {
     emoji: '📊', Icon: BarChart3,
-    bg: 'bg-gray-900', accent: 'border-l-[5px] border-yellow-400',
-    label: 'text-yellow-300', tag: 'bg-gray-800 text-yellow-400',
+    bg: 'bg-white', accent: 'border-l-[8px] border-yellow-500',
+    label: 'text-black', tag: 'bg-yellow-50 text-yellow-800 border-2 border-yellow-400',
   },
   'Load Path Analysis': {
     emoji: '🔀', Icon: Zap,
-    bg: 'bg-indigo-950', accent: 'border-l-[5px] border-indigo-400',
-    label: 'text-indigo-300', tag: 'bg-indigo-900 text-indigo-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-indigo-500',
+    label: 'text-black', tag: 'bg-indigo-50 text-indigo-800 border-2 border-indigo-400',
   },
   'Risk Summary': {
     emoji: '🚨', Icon: AlertTriangle,
-    bg: 'bg-orange-950', accent: 'border-l-[5px] border-orange-400',
-    label: 'text-orange-300', tag: 'bg-orange-900 text-orange-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-orange-500',
+    label: 'text-black', tag: 'bg-orange-50 text-orange-800 border-2 border-orange-400',
   },
   'Key Recommendations': {
     emoji: '✅', Icon: CheckCircle2,
-    bg: 'bg-teal-950', accent: 'border-l-[5px] border-teal-400',
-    label: 'text-teal-300', tag: 'bg-teal-900 text-teal-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-teal-500',
+    label: 'text-black', tag: 'bg-teal-50 text-teal-800 border-2 border-teal-400',
   },
 }
 
@@ -89,10 +89,10 @@ function parseStructuredSections(text) {
 // ─── Sub-components ────────────────────────────────────────────────────────────
 function GeomStat({ icon: Icon, label, value }) {
   return (
-    <div className="flex flex-col items-center justify-center border-4 border-black/50 p-4 bg-gray-800 shadow-[3px_3px_0_0_#fbbf2440] hover:shadow-[5px_5px_0_0_#fbbf2466] transition-all group">
-      <Icon className="w-5 h-5 text-yellow-400 mb-1 group-hover:scale-110 transition-transform" strokeWidth={2.5} />
-      <span className="text-2xl font-black text-white pixel-text">{value}</span>
-      <span className="text-xs font-bold text-gray-400 pixel-text uppercase mt-0.5">{label}</span>
+    <div className="flex flex-col items-center justify-center border-4 border-black p-4 bg-white shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all group">
+      <Icon className="w-5 h-5 text-black mb-1 group-hover:scale-110 transition-transform" strokeWidth={3} />
+      <span className="text-2xl font-black text-black pixel-text">{value}</span>
+      <span className="text-xs font-black text-black/50 pixel-text uppercase mt-0.5">{label}</span>
     </div>
   )
 }
@@ -101,8 +101,8 @@ function StructuredSection({ section, idx }) {
   const [open, setOpen] = useState(true)
   const cfg = SECTION_CONFIGS[section.title] || {
     emoji: '📝', Icon: Info,
-    bg: 'bg-gray-900', accent: 'border-l-[5px] border-gray-500',
-    label: 'text-gray-300', tag: 'bg-gray-800 text-gray-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-black',
+    label: 'text-black', tag: 'bg-white text-black border-2 border-black',
   }
 
   return (
@@ -110,19 +110,19 @@ function StructuredSection({ section, idx }) {
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: idx * 0.07 }}
-      className={`${cfg.bg} ${cfg.accent} border-4 border-black/40 shadow-[3px_3px_0_0_#000]`}
+      className={`${cfg.bg} ${cfg.accent} border-4 border-black shadow-[4px_4px_0_0_#000] mb-4 overflow-hidden`}
     >
       <button
-        className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
         onClick={() => setOpen(o => !o)}
       >
-        <span className={`flex items-center gap-2 text-xs font-black pixel-text uppercase tracking-widest px-2 py-1 border-2 border-black/30 ${cfg.tag}`}>
+        <span className={`flex items-center gap-2 text-xs font-black pixel-text uppercase tracking-widest px-3 py-1.5 shadow-[2px_2px_0_0_#000] ${cfg.tag}`}>
           <span>{cfg.emoji}</span>
           <span>{section.title}</span>
         </span>
         {open
-          ? <ChevronUp className="w-4 h-4 text-gray-400" />
-          : <ChevronDown className="w-4 h-4 text-gray-400" />}
+          ? <ChevronUp className="w-5 h-5 text-black stroke-[3]" />
+          : <ChevronDown className="w-5 h-5 text-black stroke-[3]" />}
       </button>
       <AnimatePresence initial={false}>
         {open && (
@@ -134,7 +134,7 @@ function StructuredSection({ section, idx }) {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <p className={`px-5 pb-5 font-medium leading-relaxed text-sm ${cfg.label} opacity-90`}>
+            <p className={`px-5 pb-5 font-black pixel-text leading-relaxed text-sm ${cfg.label} opacity-90 uppercase tracking-widest`}>
               {section.content}
             </p>
           </motion.div>
@@ -152,14 +152,16 @@ function ConcernAlert({ concern, idx }) {
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: idx * 0.06 }}
-      className={`flex items-start gap-4 p-4 border-4 ${cfg.bg} ${cfg.border} ${cfg.glow}`}
+      className={`flex items-start gap-4 p-5 border-4 border-black ${cfg.bg} ${cfg.glow} mb-4`}
     >
-      <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${cfg.text}`} strokeWidth={2.5} />
+      <div className={`p-2 border-2 border-black ${cfg.badge} shadow-[2px_2px_0_0_#000]`}>
+        <Icon className="w-5 h-5" strokeWidth={3} />
+      </div>
       <div>
-        <span className={`inline-block text-xs font-black px-2 py-0.5 pixel-text uppercase mr-2 border-2 border-black/30 ${cfg.badge}`}>
+        <span className={`inline-block text-xs font-black px-2 py-0.5 pixel-text uppercase mr-2 border-2 border-black shadow-[2px_2px_0_0_#000] ${cfg.badge}`}>
           {cfg.label}
         </span>
-        <span className={`text-sm font-bold ${cfg.text}`}>{concern.message}</span>
+        <span className={`text-sm font-black pixel-text uppercase tracking-widest block mt-2 ${cfg.text}`}>{concern.message}</span>
       </div>
     </motion.div>
   )
@@ -168,47 +170,46 @@ function ConcernAlert({ concern, idx }) {
 // ─── Single Element Explanation Card ──────────────────────────────────────────
 function ElementExplanationCard({ analysis, isSelected, onClick }) {
   const sections = parseStructuredSections(analysis.explanation || '')
-  const hasExpl = !!(analysis.explanation)
   const hasCritical = analysis.structural_concerns?.some(c => c.severity === 'critical')
 
   return (
     <motion.div
       layout
-      className={`border-4 border-black shadow-[4px_4px_0_0_#000] overflow-hidden ${
-        isSelected ? 'border-yellow-400' : ''
+      className={`border-4 border-black shadow-[6px_6px_0_0_#000] overflow-hidden mb-4 ${
+        isSelected ? 'ring-4 ring-yellow-400 ring-offset-4 ring-offset-[#F5EAD4]' : ''
       }`}
     >
       {/* Card Header */}
       <button
         onClick={onClick}
-        className={`w-full flex items-center justify-between p-4 text-left transition-colors ${
-          isSelected ? 'bg-yellow-400' : 'bg-black hover:bg-gray-900'
+        className={`w-full flex items-center justify-between p-5 text-left transition-colors ${
+          isSelected ? 'bg-yellow-400' : 'bg-white hover:bg-gray-50'
         }`}
       >
-        <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 border-4 border-black flex items-center justify-center font-black pixel-text text-sm ${
+        <div className="flex items-center gap-4">
+          <div className={`w-12 h-12 border-4 border-black flex items-center justify-center font-black pixel-text text-xl shadow-[3px_3px_0_0_#000] ${
             isSelected ? 'bg-black text-yellow-400' : 'bg-yellow-400 text-black'
           }`}>
             {analysis.element_id?.replace(/\D/g, '') || '?'}
           </div>
           <div>
-            <p className={`font-black pixel-text uppercase text-sm tracking-widest ${isSelected ? 'text-black' : 'text-yellow-400'}`}>
+            <p className="font-black pixel-text uppercase text-lg tracking-widest text-black">
               {analysis.element_type}
             </p>
-            <p className={`text-xs font-bold pixel-text uppercase ${isSelected ? 'text-black/60' : 'text-gray-400'}`}>
+            <p className="text-xs font-black pixel-text uppercase text-black/60 tracking-tighter">
               {analysis.structural_role?.replace('_', '-')} · Span: {analysis.span_estimate_m}m
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {hasCritical && (
-            <span className="text-xs font-black px-2 py-0.5 bg-red-500 text-white pixel-text uppercase border-2 border-red-300">
-              ⚠ CRIT
+            <span className="text-xs font-black px-3 py-1 bg-red-600 text-white pixel-text uppercase border-4 border-black shadow-[2px_2px_0_0_#000]">
+              SYSTEM_FAULT
             </span>
           )}
           {isSelected
-            ? <ChevronUp className={`w-4 h-4 ${isSelected ? 'text-black' : 'text-gray-400'}`} />
-            : <ChevronDown className="w-4 h-4 text-gray-400" />}
+            ? <ChevronUp className="w-6 h-6 text-black stroke-[3]" />
+            : <ChevronDown className="w-6 h-6 text-black stroke-[3]" />}
         </div>
       </button>
 
@@ -221,15 +222,15 @@ function ElementExplanationCard({ analysis, isSelected, onClick }) {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="overflow-hidden bg-gray-950"
+            className="overflow-hidden bg-white border-t-4 border-black"
           >
-            <div className="p-5 space-y-5">
+            <div className="p-8 space-y-10">
               {/* Geometry Stats */}
               <div>
-                <p className="text-xs font-black pixel-text uppercase tracking-widest text-gray-500 mb-3">
-                  ▸ Measurements
+                <p className="text-xs font-black pixel-text uppercase tracking-widest text-black/50 mb-4 border-b-2 border-black/10 pb-2">
+                  ▸ ELEMENT_METRICS
                 </p>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-4">
                   <GeomStat icon={Ruler}     label="Span"   value={`${analysis.span_estimate_m}m`} />
                   <GeomStat icon={Building2} label="Height" value={`${analysis.height_estimate_m}m`} />
                   <GeomStat icon={Ruler}     label="Area"   value={`${analysis.area_estimate_m2}m²`} />
@@ -238,20 +239,20 @@ function ElementExplanationCard({ analysis, isSelected, onClick }) {
 
               {/* AI Explanation */}
               <div>
-                <p className="text-xs font-black pixel-text uppercase tracking-widest text-gray-500 mb-3">
-                  ▸ AI Analysis
+                <p className="text-xs font-black pixel-text uppercase tracking-widest text-black/50 mb-4 border-b-2 border-black/10 pb-2">
+                  ▸ STRUCTURAL_LOGS
                 </p>
                 {sections ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {sections.map((section, idx) => (
                       <StructuredSection key={idx} section={section} idx={idx} />
                     ))}
                   </div>
                 ) : (
-                  <div className="border-4 border-yellow-400 bg-black p-5 shadow-[4px_4px_0_0_#fbbf2440]">
-                    <p className="text-yellow-300 font-bold leading-relaxed text-sm">
+                  <div className="border-4 border-black bg-white p-6 shadow-[6px_6px_0_0_#fbbf24]">
+                    <p className="text-black font-black pixel-text uppercase tracking-widest leading-relaxed text-sm">
                       {analysis.explanation || (
-                        <span className="text-gray-500 italic">No explanation available for this element.</span>
+                        <span className="text-black/30 italic">NO_LOG_DATA_AVAILABLE...</span>
                       )}
                     </p>
                   </div>
@@ -261,20 +262,20 @@ function ElementExplanationCard({ analysis, isSelected, onClick }) {
               {/* Structural Concerns */}
               {analysis.structural_concerns?.length > 0 ? (
                 <div>
-                  <p className="text-xs font-black pixel-text uppercase tracking-widest text-gray-500 mb-3">
-                    ▸ Structural Concerns
+                  <p className="text-xs font-black pixel-text uppercase tracking-widest text-black/50 mb-4 border-b-2 border-black/10 pb-2">
+                    ▸ HAZARD_REPORT
                   </p>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {analysis.structural_concerns.map((c, i) => (
                       <ConcernAlert key={i} concern={c} idx={i} />
                     ))}
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-3 p-4 border-4 border-green-500 bg-green-950">
-                  <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" strokeWidth={2.5} />
-                  <span className="text-sm font-bold text-green-300 pixel-text uppercase">
-                    No structural concerns detected
+                <div className="flex items-center gap-4 p-5 border-4 border-black bg-green-400 shadow-[4px_4px_0_0_#000]">
+                  <CheckCircle2 className="w-8 h-8 text-black" strokeWidth={3} />
+                  <span className="text-lg font-black text-black pixel-text uppercase tracking-widest">
+                    SYSTEM_STABLE
                   </span>
                 </div>
               )}
@@ -291,38 +292,38 @@ function OverallPanel({ overallExplanation }) {
   const sections = parseStructuredSections(overallExplanation || '')
 
   return (
-    <div className="border-4 border-black bg-gray-950 shadow-[8px_8px_0_0_#000] overflow-hidden">
-      <div className="bg-yellow-400 border-b-4 border-black px-6 py-4 flex items-center gap-3">
-        <div className="w-10 h-10 bg-black border-4 border-black flex items-center justify-center">
-          <BarChart3 className="w-6 h-6 text-yellow-400" strokeWidth={2.5} />
+    <div className="border-4 border-black bg-white shadow-[12px_12px_0_0_#000] overflow-hidden">
+      <div className="bg-yellow-400 border-b-4 border-black px-8 py-8 flex items-center gap-5">
+        <div className="w-16 h-16 bg-black border-4 border-black flex items-center justify-center shadow-[4px_4px_0_0_#fbbf24]">
+          <BarChart3 className="w-8 h-8 text-yellow-400" strokeWidth={3} />
         </div>
         <div>
-          <h3 className="text-xl font-black text-black pixel-text uppercase tracking-widest">
+          <h3 className="text-3xl font-black text-black pixel-text uppercase tracking-widest leading-none">
             Overall Structural Assessment
           </h3>
-          <p className="text-xs font-bold text-black/60 pixel-text uppercase tracking-wider">
-            Full structure analysis · Gemini LLM
+          <p className="text-sm font-black text-black/60 pixel-text uppercase tracking-wider mt-2 opacity-80">
+            STRAT_ANALYSIS_MOD_V3 // GEMINI_LLM_DEEPVIEW
           </p>
         </div>
         {sections && (
-          <span className="ml-auto flex items-center gap-1 text-xs font-black px-3 py-1.5 bg-black text-yellow-400 pixel-text uppercase border-2 border-black">
-            <Sparkles className="w-3 h-3" />
-            {sections.length} Sections
+          <span className="ml-auto flex items-center gap-2 text-sm font-black px-5 py-2.5 bg-black text-yellow-400 pixel-text uppercase border-4 border-black shadow-[4px_4px_0_0_#fbbf24]">
+            <Sparkles className="w-4 h-4" />
+            {sections.length} ANALYTICS
           </span>
         )}
       </div>
-      <div className="p-6">
+      <div className="p-10">
         {sections ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {sections.map((section, idx) => (
               <StructuredSection key={idx} section={section} idx={idx} />
             ))}
           </div>
         ) : (
-          <div className="border-4 border-yellow-400 bg-black p-5 shadow-[4px_4px_0_0_#fbbf2440]">
-            <p className="text-yellow-300 font-bold leading-relaxed text-sm">
+          <div className="border-4 border-black bg-white p-8 shadow-[8px_8px_0_0_#fbbf24]">
+            <p className="text-black font-black pixel-text uppercase tracking-[0.1em] leading-relaxed text-lg">
               {overallExplanation || (
-                <span className="text-gray-500 italic">No overall explanation available.</span>
+                <span className="text-black/30 italic">INITIALIZING_GLOBAL_REPORT...</span>
               )}
             </p>
           </div>
@@ -366,36 +367,34 @@ export default function ExplainabilityPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="pt-24 pb-16 min-h-screen"
+      className="pt-24 pb-16 min-h-screen bg-[#F5EAD4]"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ── Header ── */}
-        <div className="flex items-center justify-between mb-10">
-          <div className="flex items-center gap-4">
-            {/* Previous Step Button */}
+        <div className="flex items-center justify-between mb-12 border-b-8 border-black pb-8">
+          <div className="flex items-center gap-6">
             <button
               onClick={() => navigate('/app/materials')}
-              className="flex items-center gap-2 p-3 bg-white border-4 border-black shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+              className="flex items-center gap-2 p-4 bg-white border-4 border-black shadow-[6px_6px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
             >
-              <ArrowLeft className="w-6 h-6 text-black stroke-[3]" />
+              <ArrowLeft className="w-8 h-8 text-black stroke-[4]" />
             </button>
             <div>
-              <h1 className="text-4xl sm:text-5xl font-black text-black pixel-text uppercase tracking-widest drop-shadow-md">
-                Explainability
+              <h1 className="text-6xl font-black text-black pixel-text uppercase tracking-widest drop-shadow-md">
+                EXPLAIN_PHASE
               </h1>
-              <p className="text-black font-bold pixel-text uppercase tracking-wider opacity-70 text-sm">
-                Phase 5 · AI-Generated Structural Reasoning · Gemini LLM
+              <p className="text-black font-black pixel-text uppercase tracking-widest mt-2 opacity-60">
+                REASONING_ENGINE_v42 // LLM_OVERVIEW
               </p>
             </div>
           </div>
 
-          {/* Header Badge */}
-          <div className="hidden sm:flex items-center gap-3">
-            <div className="flex items-center gap-2 px-4 py-2 bg-black border-4 border-black shadow-[4px_4px_0_0_#7c3aed]">
-              <Brain className="w-5 h-5 text-yellow-400" />
-              <span className="text-yellow-400 font-black pixel-text uppercase text-sm">
-                Gemini · Deep Analysis
+          <div className="hidden lg:flex items-center gap-4">
+            <div className="flex items-center gap-3 px-6 py-3 bg-black border-4 border-black shadow-[6px_6px_0_0_#fbbf24]">
+              <Brain className="w-6 h-6 text-yellow-400" />
+              <span className="text-yellow-400 font-black pixel-text uppercase text-lg tracking-widest">
+                GEMINI_CORE_LINKED
               </span>
             </div>
           </div>
@@ -404,18 +403,18 @@ export default function ExplainabilityPage() {
         {/* ── Error ── */}
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="voxel-panel bg-red-50 border-red-500 p-8 text-center"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="voxel-panel bg-white border-red-600 p-12 text-center shadow-[12px_12px_0_0_#dc2626]"
           >
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" strokeWidth={2.5} />
-            <h3 className="text-xl font-black text-red-600 pixel-text uppercase mb-2">No Data</h3>
-            <p className="text-red-700 font-bold pixel-text mb-6">{error}</p>
+            <AlertCircle className="w-20 h-20 text-red-600 mx-auto mb-6" strokeWidth={3} />
+            <h3 className="text-3xl font-black text-red-600 pixel-text uppercase mb-4">CRITICAL_FAULT: NO_DATA</h3>
+            <p className="text-black font-black pixel-text text-xl mb-10 tracking-widest uppercase">{error}</p>
             <button
               onClick={() => navigate('/app/materials')}
-              className="bg-yellow-400 border-4 border-black text-black font-black uppercase px-8 py-3 pixel-text tracking-widest shadow-[4px_4px_0_0_#000] hover:-translate-y-1 transition-all"
+              className="bg-yellow-400 border-4 border-black text-black font-black uppercase px-12 py-5 text-2xl pixel-text tracking-widest shadow-[8px_8px_0_0_#000] hover:-translate-y-1 active:translate-y-1 active:shadow-none transition-all"
             >
-              ← Go to Material Analysis
+              RE-INITIALIZE
             </button>
           </motion.div>
         )}
@@ -424,15 +423,15 @@ export default function ExplainabilityPage() {
         {analysisResult && !error && (
           <>
             {/* Tab Switch */}
-            <div className="flex gap-0 mb-8 border-4 border-black w-fit">
+            <div className="flex gap-0 mb-12 border-8 border-black w-fit shadow-[8px_8px_0_0_#000]">
               {[
-                { key: 'elements', label: 'Per-Element' },
-                { key: 'overall',  label: 'Overall Report' },
+                { key: 'elements', label: 'PER_ELEMENT' },
+                { key: 'overall',  label: 'GLOBAL_REPORT' },
               ].map(tab => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`px-6 py-3 font-black pixel-text uppercase tracking-widest text-lg transition-colors ${
+                  className={`px-10 py-5 font-black pixel-text uppercase tracking-[0.2em] text-2xl transition-colors ${
                     activeTab === tab.key
                       ? 'bg-yellow-400 text-black'
                       : 'bg-white text-black hover:bg-gray-100'
@@ -449,31 +448,27 @@ export default function ExplainabilityPage() {
               {activeTab === 'elements' && (
                 <motion.div
                   key="elements"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  exit={{ opacity: 0, y: -20 }}
                 >
                   {/* Top Banner */}
-                  <div className="border-4 border-black bg-black p-4 mb-6 shadow-[6px_6px_0_0_#7c3aed] flex items-center gap-4">
-                    <div className="w-12 h-12 bg-yellow-400 border-4 border-yellow-300 flex items-center justify-center shrink-0">
-                      <Brain className="w-7 h-7 text-black" strokeWidth={2.5} />
+                  <div className="border-4 border-black bg-black p-6 mb-10 shadow-[8px_8px_0_0_#7c3aed] flex items-center gap-6">
+                    <div className="w-16 h-16 bg-yellow-400 border-4 border-yellow-300 flex items-center justify-center shrink-0 shadow-[4px_4px_0_0_#000]">
+                      <Brain className="w-10 h-10 text-black" strokeWidth={3} />
                     </div>
                     <div className="flex-1">
-                      <p className="text-yellow-400 font-black pixel-text uppercase tracking-widest text-lg leading-none">
-                        AI Element Explanations
+                      <p className="text-yellow-400 font-black pixel-text uppercase tracking-[0.3em] text-2xl leading-none">
+                        AI_REASONING_HUD
                       </p>
-                      <p className="text-gray-400 text-xs font-bold pixel-text uppercase mt-1">
-                        {analysisResult.element_analyses?.length || 0} elements · Click an element to expand its AI explanation
+                      <p className="text-gray-400 text-xs font-black pixel-text uppercase tracking-widest mt-2">
+                        {analysisResult.element_analyses?.length || 0} OBJECTS_FOUND // SELECT_TO_DECRYPT
                       </p>
                     </div>
-                    <span className="flex items-center gap-1 text-xs font-black px-3 py-1.5 bg-purple-700 text-white pixel-text uppercase border-2 border-purple-400 shadow-[2px_2px_0_0_#000]">
-                      <Sparkles className="w-3 h-3" />
-                      Gemini AI
-                    </span>
                   </div>
 
                   {/* Accordion list */}
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {analysisResult.element_analyses?.map((analysis) => (
                       <ElementExplanationCard
                         key={analysis.element_id}
@@ -490,20 +485,20 @@ export default function ExplainabilityPage() {
               {activeTab === 'overall' && (
                 <motion.div
                   key="overall"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                  exit={{ opacity: 0, y: -20 }}
                 >
                   {analysisResult.overall_explanation ? (
                     <OverallPanel overallExplanation={analysisResult.overall_explanation} />
                   ) : (
-                    <div className="voxel-panel p-16 text-center bg-black border-black shadow-[6px_6px_0_0_#7c3aed]">
-                      <Brain className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                      <p className="text-2xl font-black text-yellow-400 pixel-text uppercase">
-                        No Overall Report
+                    <div className="voxel-panel p-24 text-center bg-white border-black shadow-[12px_12px_0_0_#7c3aed]">
+                      <Brain className="w-24 h-24 text-black opacity-20 mx-auto mb-8" />
+                      <p className="text-4xl font-black text-black pixel-text uppercase tracking-widest">
+                        ERROR: LOG_NOT_FOUND
                       </p>
-                      <p className="text-white/50 font-bold pixel-text uppercase text-sm mt-2">
-                        Overall assessment was not generated · Check per-element explanations
+                      <p className="text-black/40 font-black pixel-text uppercase text-lg mt-4 tracking-wider">
+                        GLOBAL_REPORT_BUFFER_EMPTY // CHECK_PER_ELEMENT_STREAMS
                       </p>
                     </div>
                   )}
@@ -512,23 +507,22 @@ export default function ExplainabilityPage() {
             </AnimatePresence>
 
             {/* ── Footer + CTA ── */}
-            <div className="mt-10 space-y-4">
-              <div className="border-4 border-black bg-gray-900 px-6 py-4 flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-500 pixel-text uppercase">
-                  Phase 05 · Explainability · AI-Generated · Structural AI System
+            <div className="mt-16 space-y-6">
+              <div className="border-4 border-black bg-white px-8 py-6 flex items-center justify-between shadow-[6px_6px_0_0_#000]">
+                <span className="text-sm font-black text-black opacity-40 pixel-text uppercase tracking-[0.2em]">
+                  PHASE_05 // EXPLAIN_SYSTEM // SECURE_ARCH
                 </span>
-                <span className="text-xs font-bold text-gray-600 pixel-text uppercase hidden sm:block">
-                  For informational use only — verify with a licensed structural engineer
+                <span className="text-sm font-black text-black opacity-40 pixel-text uppercase hidden sm:block tracking-widest">
+                  AUTHORIZED_PERSONNEL_ONLY // DO_NOT_DISTRIBUTE
                 </span>
               </div>
               <button
                 onClick={() => navigate('/app/cost-breakdown')}
-                id="to-cost-report-btn"
-                className="w-full bg-black text-yellow-400 border-4 border-black px-6 py-4 font-black uppercase pixel-text tracking-[0.2em] transition-transform hover:-translate-y-1 shadow-[6px_6px_0_0_#fbbf24] active:translate-y-1 active:shadow-none flex items-center justify-center gap-3 text-2xl"
+                className="w-full bg-yellow-400 text-black border-8 border-black px-10 py-8 font-black uppercase pixel-text tracking-[0.4em] transition-transform hover:-translate-y-2 shadow-[12px_12px_0_0_#000] active:translate-y-2 active:shadow-none flex items-center justify-center gap-6 text-4xl"
               >
-                <FileText className="w-6 h-6 stroke-[3]" />
-                Phase 6 · Cost Report
-                <ArrowRight className="w-6 h-6 stroke-[3]" />
+                <FileText className="w-10 h-10 stroke-[4]" />
+                PHASE_06: COST_REPORT
+                <ArrowRight className="w-10 h-10 stroke-[4]" />
               </button>
             </div>
           </>

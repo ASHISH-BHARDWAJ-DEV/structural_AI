@@ -80,7 +80,7 @@ export default function PipelineStages() {
                 <motion.div
                   whileHover={{ scale: 1.02, x: index % 2 === 0 ? -4 : 4 }}
                   className={`voxel-panel bg-white p-6 inline-block shadow-[6px_6px_0_0_#000000] hover:shadow-[10px_10px_0_0_#000000] transition-all ${
-                    stage.status === 'active' ? 'ring-4 ring-yellow-400 ring-offset-4 ring-offset-[#80C8C6]' : ''
+                    stage.status === 'active' ? 'ring-4 ring-yellow-400 ring-offset-4 ring-offset-[#F5EAD4]' : ''
                   }`}
                 >
                   <div className={`flex items-center gap-4 mb-4 ${

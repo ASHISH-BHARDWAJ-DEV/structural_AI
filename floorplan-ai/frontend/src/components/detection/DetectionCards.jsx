@@ -10,10 +10,10 @@ const iconMap = {
 }
 
 const colorMap = {
-  door: 'from-green-500 to-emerald-500',
-  window: 'from-blue-500 to-cyan-500',
-  wall: 'from-red-500 to-orange-500',
-  column: 'from-amber-500 to-yellow-500',
+  door: 'bg-green-400',
+  window: 'bg-blue-400',
+  wall: 'bg-red-400',
+  column: 'bg-yellow-400',
 }
 
 export default function DetectionCards() {
@@ -34,15 +34,15 @@ export default function DetectionCards() {
       {/* Total Card */}
       <motion.div
         whileHover={{ scale: 1.02 }}
-        className="col-span-2 glass-card p-6 bg-gradient-to-br from-primary-500/20 to-accent-500/20"
+        className="col-span-2 voxel-panel bg-yellow-400 p-6 shadow-[6px_6px_0_0_#000]"
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-slate-400 text-sm">Total Detections</p>
-            <p className="text-4xl font-bold text-white">{total}</p>
+            <p className="text-black font-black pixel-text uppercase text-sm tracking-widest">Total Detections</p>
+            <p className="text-5xl font-black text-black pixel-text">{total}</p>
           </div>
-          <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center">
-            <Grid3X3 className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 border-4 border-black bg-white flex items-center justify-center shadow-[4px_4px_0_0_#000]">
+            <Grid3X3 className="w-8 h-8 text-black" />
           </div>
         </div>
       </motion.div>
@@ -50,7 +50,7 @@ export default function DetectionCards() {
       {/* Individual counts */}
       {Object.entries(counts).map(([className, count], index) => {
         const Icon = iconMap[className.toLowerCase()] || Square
-        const gradient = colorMap[className.toLowerCase()] || 'from-slate-500 to-slate-600'
+        const bgColor = colorMap[className.toLowerCase()] || 'bg-gray-400'
         
         return (
           <motion.div
@@ -59,15 +59,15 @@ export default function DetectionCards() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.05 }}
             whileHover={{ scale: 1.05 }}
-            className="glass-card p-4"
+            className="voxel-panel bg-white p-4 shadow-[4px_4px_0_0_#000]"
           >
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-                <Icon className="w-5 h-5 text-white" />
+              <div className={`w-12 h-12 border-4 border-black ${bgColor} flex items-center justify-center shadow-[2px_2px_0_0_#000]`}>
+                <Icon className="w-6 h-6 text-black" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{count}</p>
-                <p className="text-slate-400 text-sm capitalize">{className}</p>
+                <p className="text-2xl font-black text-black pixel-text">{count}</p>
+                <p className="text-black font-bold pixel-text uppercase text-xs tracking-tighter">{className}</p>
               </div>
             </div>
           </motion.div>

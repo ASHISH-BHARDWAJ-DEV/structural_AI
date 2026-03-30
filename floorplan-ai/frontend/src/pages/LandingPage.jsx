@@ -15,7 +15,7 @@ export default function LandingPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-[#80C8C6] flex flex-col items-center justify-center">
+    <div className="relative w-full h-screen overflow-hidden bg-[#F5EAD4] flex flex-col items-center justify-center">
       {/* 3D Canvas Background */}
       <Canvas 
         className="absolute inset-0 z-0"

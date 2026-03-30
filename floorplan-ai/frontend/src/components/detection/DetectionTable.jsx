@@ -20,7 +20,7 @@ export default function DetectionTable() {
       
       <div className="overflow-x-auto border-4 border-black">
         <table className="w-full bg-white">
-          <thead className="bg-[#80C8C6]">
+          <thead className="bg-[#F5EAD4]">
             <tr className="border-b-4 border-black">
               <th className="text-left py-4 px-4 text-black font-black text-xl pixel-text uppercase border-r-4 border-black">#</th>
               <th className="text-left py-4 px-4 text-black font-black text-xl pixel-text uppercase border-r-4 border-black">Type</th>

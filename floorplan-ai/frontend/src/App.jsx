@@ -12,7 +12,7 @@ import Navbar from './components/layout/Navbar';
 // Main app layout with navbar
 const MainAppLayout = () => {
   return (
-    <div className="min-h-screen bg-[#80C8C6] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F5EAD4] flex flex-col font-sans">
       <Navbar />
       <main className="flex-grow relative">
         <Outlet />

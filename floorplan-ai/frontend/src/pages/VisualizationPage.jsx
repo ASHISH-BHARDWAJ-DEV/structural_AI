@@ -48,7 +48,7 @@ export default function VisualizationPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="pt-24 pb-12 min-h-screen bg-[#80C8C6]"
+      className="pt-24 pb-12 min-h-screen bg-[#F5EAD4]"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header - Voxel Style */}

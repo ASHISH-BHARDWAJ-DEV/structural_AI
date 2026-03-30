@@ -10,73 +10,73 @@ import { useState } from 'react'
 const SEVERITY_CONFIG = {
   critical: {
     Icon:   AlertCircle,
-    bg:     'bg-red-950',
-    border: 'border-red-500',
-    text:   'text-red-300',
-    badge:  'bg-red-500 text-white',
-    label:  'CRITICAL',
-    glow:   'shadow-[0_0_12px_rgba(239,68,68,0.4)]',
+    bg:     'bg-white',
+    border: 'border-red-600',
+    text:   'text-red-700',
+    badge:  'bg-red-600 text-white',
+    label:  'CRITICAL_WARNING',
+    glow:   'shadow-[4px_4px_0_0_#dc2626]',
   },
   warning: {
     Icon:   AlertTriangle,
-    bg:     'bg-yellow-950',
-    border: 'border-yellow-500',
-    text:   'text-yellow-300',
+    bg:     'bg-white',
+    border: 'border-yellow-600',
+    text:   'text-yellow-800',
     badge:  'bg-yellow-400 text-black',
-    label:  'WARNING',
-    glow:   'shadow-[0_0_12px_rgba(234,179,8,0.3)]',
+    label:  'SYSTEM_WARNING',
+    glow:   'shadow-[4px_4px_0_0_#ca8a04]',
   },
   info: {
     Icon:   Info,
-    bg:     'bg-blue-950',
-    border: 'border-blue-500',
-    text:   'text-blue-300',
-    badge:  'bg-blue-500 text-white',
-    label:  'INFO',
-    glow:   '',
+    bg:     'bg-white',
+    border: 'border-blue-600',
+    text:   'text-blue-700',
+    badge:  'bg-blue-400 text-black',
+    label:  'ASSESSMENT_INFO',
+    glow:   'shadow-[4px_4px_0_0_#2563eb]',
   },
 }
 
 const SECTION_CONFIGS = {
   'Material Recommendation': {
     emoji: '🏗️', Icon: HardHat,
-    bg: 'bg-blue-950', accent: 'border-l-[5px] border-blue-400',
-    label: 'text-blue-300', tag: 'bg-blue-900 text-blue-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-blue-500',
+    label: 'text-black', tag: 'bg-blue-100 text-blue-800 border-2 border-blue-400',
   },
   'Cost vs Strength Tradeoff': {
     emoji: '⚖️', Icon: BarChart3,
-    bg: 'bg-purple-950', accent: 'border-l-[5px] border-purple-400',
-    label: 'text-purple-300', tag: 'bg-purple-900 text-purple-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-purple-500',
+    label: 'text-black', tag: 'bg-purple-100 text-purple-800 border-2 border-purple-400',
   },
   'Structural Concerns': {
     emoji: '⚠️', Icon: ShieldAlert,
-    bg: 'bg-red-950', accent: 'border-l-[5px] border-red-400',
-    label: 'text-red-300', tag: 'bg-red-900 text-red-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-red-500',
+    label: 'text-black', tag: 'bg-red-100 text-red-800 border-2 border-red-400',
   },
   'Builder Guidance': {
     emoji: '👷', Icon: HardHat,
-    bg: 'bg-green-950', accent: 'border-l-[5px] border-green-400',
-    label: 'text-green-300', tag: 'bg-green-900 text-green-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-green-500',
+    label: 'text-black', tag: 'bg-green-100 text-green-800 border-2 border-green-400',
   },
   'Overall Assessment': {
     emoji: '📊', Icon: BarChart3,
-    bg: 'bg-gray-900', accent: 'border-l-[5px] border-yellow-400',
-    label: 'text-yellow-300', tag: 'bg-gray-800 text-yellow-400',
+    bg: 'bg-white', accent: 'border-l-[8px] border-yellow-500',
+    label: 'text-black', tag: 'bg-yellow-100 text-yellow-800 border-2 border-yellow-400',
   },
   'Load Path Analysis': {
     emoji: '🔀', Icon: Zap,
-    bg: 'bg-indigo-950', accent: 'border-l-[5px] border-indigo-400',
-    label: 'text-indigo-300', tag: 'bg-indigo-900 text-indigo-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-indigo-500',
+    label: 'text-black', tag: 'bg-indigo-100 text-indigo-800 border-2 border-indigo-400',
   },
   'Risk Summary': {
     emoji: '🚨', Icon: AlertTriangle,
-    bg: 'bg-orange-950', accent: 'border-l-[5px] border-orange-400',
-    label: 'text-orange-300', tag: 'bg-orange-900 text-orange-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-orange-500',
+    label: 'text-black', tag: 'bg-orange-100 text-orange-800 border-2 border-orange-400',
   },
   'Key Recommendations': {
     emoji: '✅', Icon: CheckCircle2,
-    bg: 'bg-teal-950', accent: 'border-l-[5px] border-teal-400',
-    label: 'text-teal-300', tag: 'bg-teal-900 text-teal-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-teal-500',
+    label: 'text-black', tag: 'bg-teal-100 text-teal-800 border-2 border-teal-400',
   },
 }
 
@@ -98,10 +98,10 @@ function parseStructuredSections(text) {
 
 function GeomStat({ icon: Icon, label, value }) {
   return (
-    <div className="flex flex-col items-center justify-center border-4 border-black/60 p-4 bg-gray-800 shadow-[3px_3px_0_0_rgba(251,191,36,0.4)] hover:shadow-[5px_5px_0_0_rgba(251,191,36,0.5)] transition-all group">
-      <Icon className="w-5 h-5 text-yellow-400 mb-1 group-hover:scale-110 transition-transform" strokeWidth={2.5} />
-      <span className="text-2xl font-black text-white pixel-text">{value}</span>
-      <span className="text-xs font-bold text-gray-400 pixel-text uppercase mt-0.5">{label}</span>
+    <div className="flex flex-col items-center justify-center border-4 border-black p-4 bg-white shadow-[4px_4px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all group cursor-default">
+      <Icon className="w-5 h-5 text-black mb-1 group-hover:scale-110 transition-transform" strokeWidth={3} />
+      <span className="text-2xl font-black text-black pixel-text">{value}</span>
+      <span className="text-xs font-black text-black pixel-text uppercase mt-0.5 tracking-tighter opacity-60">{label}</span>
     </div>
   )
 }
@@ -110,32 +110,31 @@ function StructuredSection({ section, idx }) {
   const [open, setOpen] = useState(true)
   const cfg = SECTION_CONFIGS[section.title] || {
     emoji: '📝', Icon: Info,
-    bg: 'bg-gray-900', accent: 'border-l-[5px] border-gray-500',
-    label: 'text-gray-300', tag: 'bg-gray-800 text-gray-300',
+    bg: 'bg-white', accent: 'border-l-[8px] border-black',
+    label: 'text-black', tag: 'bg-white text-black border-2 border-black',
   }
-  const SectionIcon = cfg.Icon
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: idx * 0.08 }}
-      className={`${cfg.bg} ${cfg.accent} border-4 border-black/40 shadow-[3px_3px_0_0_#000]`}
+      className={`${cfg.bg} ${cfg.accent} border-4 border-black shadow-[4px_4px_0_0_#000] mb-4 overflow-hidden`}
     >
       {/* Header */}
       <button
-        className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors text-left"
         onClick={() => setOpen(o => !o)}
       >
         <div className="flex items-center gap-3">
-          <span className={`flex items-center gap-2 text-xs font-black pixel-text uppercase tracking-widest px-2 py-1 border-2 border-black/30 ${cfg.tag}`}>
+          <span className={`flex items-center gap-2 text-xs font-black pixel-text uppercase tracking-widest px-3 py-1.5 shadow-[2px_2px_0_0_#000] ${cfg.tag}`}>
             <span>{cfg.emoji}</span>
             <span>{section.title}</span>
           </span>
         </div>
         {open
-          ? <ChevronUp className="w-4 h-4 text-gray-400" />
-          : <ChevronDown className="w-4 h-4 text-gray-400" />
+          ? <ChevronUp className="w-5 h-5 text-black stroke-[3]" />
+          : <ChevronDown className="w-5 h-5 text-black stroke-[3]" />
         }
       </button>
 
@@ -150,7 +149,7 @@ function StructuredSection({ section, idx }) {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <p className={`px-5 pb-5 font-medium leading-relaxed text-sm ${cfg.label} opacity-90`}>
+            <p className={`px-5 pb-5 font-bold leading-relaxed text-sm ${cfg.label} pixel-text uppercase tracking-wide border-t-2 border-black/10 pt-4 mt-2`}>
               {section.content}
             </p>
           </motion.div>
@@ -169,14 +168,16 @@ function ConcernAlert({ concern, idx }) {
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: idx * 0.06 }}
-      className={`flex items-start gap-4 p-4 border-4 ${cfg.bg} ${cfg.border} ${cfg.glow}`}
+      className={`flex items-start gap-4 p-5 border-4 border-black ${cfg.bg} ${cfg.glow} mb-4`}
     >
-      <Icon className={`w-5 h-5 mt-0.5 shrink-0 ${cfg.text}`} strokeWidth={2.5} />
+      <div className={`p-2 border-2 border-black ${cfg.badge} shadow-[2px_2px_0_0_#000]`}>
+        <Icon className="w-5 h-5" strokeWidth={3} />
+      </div>
       <div>
-        <span className={`inline-block text-xs font-black px-2 py-0.5 pixel-text uppercase mr-2 border-2 border-black/30 ${cfg.badge}`}>
+        <span className={`inline-block text-xs font-black px-2 py-0.5 pixel-text uppercase mr-2 border-2 border-black/30 shadow-[1px_1px_0_0_#000] ${cfg.badge}`}>
           {cfg.label}
         </span>
-        <span className={`text-sm font-bold ${cfg.text}`}>{concern.message}</span>
+        <p className={`text-sm font-black pixel-text uppercase tracking-wider mt-2 ${cfg.text}`}>{concern.message}</p>
       </div>
     </motion.div>
   )
@@ -195,49 +196,43 @@ export default function ExplainabilityPanel({ analysis, overallExplanation }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="border-4 border-black bg-gray-950 shadow-[8px_8px_0_0_#000] overflow-hidden"
+      className="border-4 border-black bg-white shadow-[8px_8px_0_0_#000] overflow-hidden"
     >
       {/* ── Top Banner ── */}
-      <div className="bg-black border-b-4 border-yellow-400 px-6 py-4 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-yellow-400 border-4 border-yellow-300 flex items-center justify-center shadow-[3px_3px_0_0_rgba(0,0,0,0.6)]">
-            <Brain className="w-7 h-7 text-black" strokeWidth={2.5} />
+      <div className="bg-yellow-400 border-b-4 border-black px-6 py-6 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-5">
+          <div className="w-14 h-14 bg-black border-4 border-black flex items-center justify-center shadow-[4px_4px_0_0_#fbbf24]">
+            <Brain className="w-8 h-8 text-yellow-400" strokeWidth={3} />
           </div>
           <div>
-            <h3 className="text-2xl font-black text-yellow-400 pixel-text uppercase tracking-widest leading-none">
+            <h3 className="text-3xl font-black text-black pixel-text uppercase tracking-widest leading-none">
               {isOverall ? 'Overall Assessment' : `AI Explanation`}
             </h3>
-            <p className="text-xs font-bold text-gray-400 pixel-text uppercase tracking-wider mt-0.5">
+            <p className="text-xs font-black text-black/60 pixel-text uppercase tracking-wider mt-1.5 opacity-80">
               {isOverall
-                ? 'Full structural report · Gemini LLM analysis'
-                : `Element: ${analysis?.element_id || '—'} · Gemini LLM analysis`
+                ? 'FULL_STRUCTURAL_REPORT // GEMINI_LLM_V1'
+                : `DEVICE: ${analysis?.element_id || 'UNKNOWN'} // STRUCTURAL_LOG`
               }
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          {sections && (
-            <span className="flex items-center gap-1 text-xs font-black px-3 py-1.5 bg-purple-700 text-white pixel-text uppercase border-2 border-purple-400 shadow-[2px_2px_0_0_#000]">
-              <Sparkles className="w-3 h-3" />
-              Deep AI · {sections.length} sections
-            </span>
-          )}
-          <span className="text-xs font-black px-3 py-1.5 bg-yellow-400 text-black pixel-text uppercase border-2 border-black shadow-[2px_2px_0_0_#000]">
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="text-xs font-black px-4 py-2 bg-black text-white pixel-text uppercase border-2 border-black shadow-[3px_3px_0_0_#fbbf24]">
             Gemini
           </span>
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-8 space-y-10">
 
         {/* ── Geometry Stats (per-element) ── */}
         {analysis && (
           <div>
-            <p className="text-xs font-black pixel-text uppercase tracking-widest text-gray-500 mb-3">
-              ▸ Element Measurements
+            <p className="text-xs font-black pixel-text uppercase tracking-widest text-black/50 mb-4 border-b-2 border-black/10 pb-2">
+              SYSTEM_METRICS
             </p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-4">
               <GeomStat icon={Ruler}     label="Span"   value={`${analysis.span_estimate_m}m`} />
               <GeomStat icon={Building2} label="Height" value={`${analysis.height_estimate_m}m`} />
               <GeomStat icon={Ruler}     label="Area"   value={`${analysis.area_estimate_m2}m²`} />
@@ -246,38 +241,33 @@ export default function ExplainabilityPanel({ analysis, overallExplanation }) {
         )}
 
         {/* ── AI Sections ── */}
-        {sections ? (
-          <div>
-            <p className="text-xs font-black pixel-text uppercase tracking-widest text-gray-500 mb-3">
-              ▸ AI Analysis Breakdown
-            </p>
-            <div className="space-y-3">
+        <div>
+          <p className="text-xs font-black pixel-text uppercase tracking-widest text-black/50 mb-4 border-b-2 border-black/10 pb-2">
+            DETAILED_LOGS
+          </p>
+          {sections ? (
+            <div className="space-y-2">
               {sections.map((section, idx) => (
                 <StructuredSection key={idx} section={section} idx={idx} />
               ))}
             </div>
-          </div>
-        ) : (
-          /* Fallback: Plain text */
-          <div>
-            <p className="text-xs font-black pixel-text uppercase tracking-widest text-gray-500 mb-3">
-              ▸ AI Explanation
-            </p>
-            <div className="border-4 border-yellow-400 bg-black p-5 shadow-[4px_4px_0_0_rgba(251,191,36,0.5)]">
-              <p className="text-yellow-300 font-bold leading-relaxed text-sm">
+          ) : (
+            /* Fallback: Plain text */
+            <div className="border-4 border-black bg-white p-6 shadow-[6px_6px_0_0_#fbbf24]">
+              <p className="text-black font-black pixel-text uppercase tracking-widest leading-relaxed text-sm">
                 {explanationText || (
-                  <span className="text-gray-500 italic">Generating explanation...</span>
+                  <span className="text-black/30 italic">INITIALIZING_EXPLANATION...</span>
                 )}
               </p>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* ── Structural Concerns (per-element) ── */}
         {analysis && analysis.structural_concerns?.length > 0 && (
           <div>
-            <p className="text-xs font-black pixel-text uppercase tracking-widest text-gray-500 mb-3">
-              ▸ Structural Concerns
+            <p className="text-xs font-black pixel-text uppercase tracking-widest text-black/50 mb-4 border-b-2 border-black/10 pb-2">
+              WARNINGS_REPORTED
             </p>
             <div className="space-y-2">
               {analysis.structural_concerns.map((concern, i) => (
@@ -289,10 +279,10 @@ export default function ExplainabilityPanel({ analysis, overallExplanation }) {
 
         {/* ── No concerns ── */}
         {analysis && (!analysis.structural_concerns || analysis.structural_concerns.length === 0) && (
-          <div className="flex items-center gap-3 p-4 border-4 border-green-500 bg-green-950 shadow-[3px_3px_0_0_#000]">
-            <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" strokeWidth={2.5} />
-            <span className="text-sm font-bold text-green-300 pixel-text uppercase tracking-wide">
-              No structural concerns detected for this element
+          <div className="flex items-center gap-4 p-5 border-4 border-black bg-green-400 shadow-[4px_4px_0_0_#000]">
+            <CheckCircle2 className="w-8 h-8 text-black" strokeWidth={3} />
+            <span className="text-lg font-black text-black pixel-text uppercase tracking-widest">
+              NO_INTEGRITY_COMRPIMISE_DETECTED
             </span>
           </div>
         )}
@@ -300,12 +290,12 @@ export default function ExplainabilityPanel({ analysis, overallExplanation }) {
       </div>
 
       {/* ── Footer Bar ── */}
-      <div className="border-t-4 border-black bg-gray-900 px-6 py-3 flex items-center justify-between">
-        <span className="text-xs font-bold text-gray-500 pixel-text uppercase">
-          Phase 05 · Explainability · AI-Generated
+      <div className="border-t-4 border-black bg-gray-100 px-8 py-5 flex items-center justify-between">
+        <span className="text-sm font-black text-black opacity-50 pixel-text uppercase tracking-widest">
+          REPORT_ID: 05-XPLAN · ENGIN_ONLY
         </span>
-        <span className="text-xs font-bold text-gray-600 pixel-text uppercase">
-          For informational use only — verify with a licensed engineer
+        <span className="text-xs font-black text-black opacity-40 pixel-text uppercase tracking-tighter">
+          VERIFY_WITH_LICENSE_PROFESSIONAL
         </span>
       </div>
     </motion.div>
