@@ -45,7 +45,15 @@ async def startup_event():
     import threading
     from app.services.price_scraper import price_cache
     logger.info("Autonomous Structural Intelligence API v3.0 starting up...")
-    logger.info("Phase 1-2: YOLOv8 Detection ready")
+    
+    # Verify Detector
+    from app.routes.predict import get_detector
+    try:
+        det = get_detector()
+        logger.info(f"Phase 1-2: YOLOv8 Detection ready (Classes: {list(det.class_names.values())})")
+    except Exception as e:
+        logger.error(f"Phase 1-2: YOLOv8 Detection FAILED to initialize: {str(e)}")
+    
     logger.info("Phase 4: Material Analyzer ready")
     logger.info("Phase 5: Gemini Deep Explainability engine ready (1200 tokens, 4-section)")
     logger.info("Bonus: Cost Breakdown Report engine ready — POST /api/cost-breakdown")

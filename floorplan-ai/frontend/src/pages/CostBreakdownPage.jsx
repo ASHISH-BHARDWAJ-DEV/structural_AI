@@ -5,9 +5,12 @@ import {
   ArrowLeft, Download, FileText, Loader2, AlertTriangle,
   TrendingUp, TrendingDown, DollarSign, Layers, Building2,
   ChevronUp, ChevronDown, Minus, RefreshCw, IndianRupee, SlidersHorizontal,
+  ShieldCheck, Database,
   Wifi, WifiOff, ExternalLink, RefreshCcw, CheckCircle2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { generateReportHash } from '../services/reportHasher'
+import { connectFreighter, anchorHashOnChain } from '../services/stellar'
 import { fetchLivePrices, refreshLivePrices } from '../services/api'
 import { FLOOR_CONFIGS, getFloorConfig } from '../data/multiStorey'
 
@@ -628,6 +631,9 @@ export default function CostBreakdownPage() {
   const [wallHeight,    setWallHeight]    = useState(3)
   const [error,         setError]         = useState(null)
   const [isPdfExporting, setIsPdfExporting] = useState(false)
+  const [isAnchoring, setIsAnchoring] = useState(false)
+  const [txHash, setTxHash] = useState(null)
+  const [showFreighterModal, setShowFreighterModal] = useState(false)
   const [livePrices,    setLivePrices]    = useState(null)
   const [priceStatus,   setPriceStatus]   = useState('loading')
   const [liveCount,     setLiveCount]     = useState(0)
@@ -700,6 +706,49 @@ export default function CostBreakdownPage() {
     setIsPdfExporting(false)
   }
 
+  const handleAnchorToBlockchain = async () => {
+    if (!analyses) return
+    
+    setIsAnchoring(true)
+    const toastId = toast.loading('Proof of Existence: Anchoring report to Stellar...')
+    
+    try {
+      // 1. Generate Hash from current state
+      const reportData = {
+        projectId: `proj_${Date.now()}`, // In a real app, this would be fixed per project
+        metadata: {
+          timestamp: Date.now(),
+          wallHeight: wallHeight,
+          totalElements: lineItems.length,
+          grandMid: summary.grandMid
+        },
+        lineItems: lineItems
+      }
+      const hash = await generateReportHash(reportData)
+      
+      // 2. Connect Wallet
+      const publicKey = await connectFreighter()
+      
+      // 3. Anchor on Chain
+      const result = await anchorHashOnChain(reportData.projectId, hash, summary.grandMid, publicKey)
+      
+      setTxHash(result)
+      toast.success('Successfully anchored to Testnet!', { id: toastId })
+    } catch (err) {
+      console.error('Blockchain error:', err)
+      if (err.message === 'Freighter wallet extension not found') {
+        setShowFreighterModal(true)
+        toast.dismiss(toastId)
+      } else if (err.message.includes('denied') || err.message.includes('cancelled')) {
+        toast.error('Transaction cancelled', { id: toastId })
+      } else {
+        toast.error(err.message || 'Failed to anchor report', { id: toastId })
+      }
+    } finally {
+      setIsAnchoring(false)
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -749,15 +798,26 @@ export default function CostBreakdownPage() {
             </button>
 
             {analyses && (
-              <button
-                onClick={handleExportPDF}
-                disabled={isPdfExporting}
-                id="export-pdf-btn"
-                className="flex items-center gap-2 px-6 py-3 bg-black text-yellow-400 border-4 border-black shadow-[4px_4px_0_0_#fbbf24] hover:shadow-[2px_2px_0_0_#fbbf24] hover:translate-x-0.5 hover:translate-y-0.5 transition-all font-black pixel-text uppercase text-sm disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isPdfExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                Export PDF
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleAnchorToBlockchain}
+                  disabled={isAnchoring}
+                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white border-4 border-black shadow-[4px_4px_0_0_#000] hover:shadow-[2px_2px_0_0_#000] hover:translate-x-0.5 hover:translate-y-0.5 transition-all font-black pixel-text uppercase text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isAnchoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
+                  Anchor to Blockchain
+                </button>
+
+                <button
+                  onClick={handleExportPDF}
+                  disabled={isPdfExporting}
+                  id="export-pdf-btn"
+                  className="flex items-center gap-2 px-6 py-3 bg-black text-yellow-400 border-4 border-black shadow-[4px_4px_0_0_#fbbf24] hover:shadow-[2px_2px_0_0_#fbbf24] hover:translate-x-0.5 hover:translate-y-0.5 transition-all font-black pixel-text uppercase text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isPdfExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  Export PDF
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -784,6 +844,21 @@ export default function CostBreakdownPage() {
         {/* ── Report ── */}
         {analyses && !error && (
           <div className="space-y-8">
+            {txHash && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-green-100 border-4 border-green-600 p-4 mb-4 flex flex-col gap-2"
+              >
+                <div className="flex items-center gap-2 text-green-800 font-black pixel-text uppercase text-sm">
+                  <ShieldCheck className="w-5 h-5" />
+                  Proof of Existence Anchored!
+                </div>
+                <div className="text-xs font-mono break-all text-green-700 bg-white/50 p-2 border-2 border-green-200">
+                  Transaction Hash: {txHash}
+                </div>
+              </motion.div>
+            )}
 
             {/* ── Live Price Source Banner ── */}
             <motion.div
@@ -979,6 +1054,45 @@ export default function CostBreakdownPage() {
           </div>
         )}
       </div>
+
+      {/* Freighter Installation Modal */}
+      {showFreighterModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowFreighterModal(false)}
+          />
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="relative bg-white border-4 border-black p-8 max-w-md w-full shadow-[8px_8px_0_0_#000] text-center"
+          >
+            <Database className="w-16 h-16 text-blue-600 mx-auto mb-4" strokeWidth={2.5} />
+            <h3 className="text-2xl font-black pixel-text uppercase mb-4">Freighter Required</h3>
+            <p className="text-gray-600 font-bold mb-8">
+              To anchor this report to the blockchain for "Proof of Existence", you need the Freighter browser extension installed.
+            </p>
+            <div className="flex flex-col gap-3">
+              <a 
+                href="https://www.freighter.app/" 
+                target="_blank" 
+                rel="noreferrer"
+                className="bg-yellow-400 border-4 border-black py-4 px-6 text-black font-black pixel-text uppercase tracking-widest hover:-translate-y-1 transition-all shadow-[4px_4px_0_0_#000]"
+              >
+                Install Freighter
+              </a>
+              <button 
+                onClick={() => setShowFreighterModal(false)}
+                className="font-black pixel-text uppercase text-sm text-gray-500 hover:text-black mt-2"
+              >
+                Maybe Later
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   )
 }
